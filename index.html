@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Imparity AI</title>
+		<link href="/src/style.css" rel="stylesheet" />
+		<link
+			href="/public/image/_9597ec48-6ba2-4b23-a614-570064077f5b-removebg-preview.png"
+			rel="icon"
+		/>
+	</head>
+	<body
+		class="min-h-screen w-full relative bg-linear-to-br from-blue-900 via-indigo-500 to-red-900 text-white antialiased"
+	>
+		<!-- Header -->
+		<header
+			class="w-full mb-8 bg-linear-to-r from-blue-500 via-indigo-600/45 to-red-800 backdrop-blur-sm shadow-lg sticky top-0 z-10"
+		>
+			<div
+				class="max-w-7xl mx-auto px-3 sm:px-6 py-4 flex justify-between items-center"
+			>
+				<!-- Menu burger -->
+				<button
+					class="bg-linear-to-tl from-violet-400 via-violet-500/65 to-violet-600 hover:to-violet-500 backdrop-blur-sm text-white font-semibold px-4 py-2 rounded-lg cursor-pointer transition-all active:scale-95 shadow-md"
+					aria-label="Menu"
+					id="menu-btn"
+				>
+					<svg
+						class="w-7 h-w-7"
+						fill="none"
+						stroke="currentColor"
+						viewBox="0 0 24 24"
+					>
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M4 6h16M4 12h16M4 18h16"
+						/>
+					</svg>
+				</button>
+
+				<!-- Logo -->
+				<div class="flex items-center sm:gap-3">
+					<div
+						class="w-10 h-10 rounded-full flex items-center justify-center shadow-md hover:-rotate-3 active:rotate-6 transition"
+					>
+						<img
+							id="logo-ai"
+							src="/public/image/_9597ec48-6ba2-4b23-a614-570064077f5b-removebg-preview.png"
+							alt="Logo : Evalua AI"
+						/>
+					</div>
+					<h1
+						class="sm:text-xl md:text-3xl text-balance font-bold text-white tracking-tight transition-transform cursor-pointer drop-shadow-lg"
+					>
+						Imparity <span class="text-violet-400 transition">AI</span>
+					</h1>
+				</div>
+
+				<!-- Auth buttons -->
+				<div class="flex items-center gap-2 sm:gap-4">
+					<button
+						data-action="signup"
+						class="px-2 py-1 sm:px-5 sm:py-2 bg-white text-violet-600 text-nowrap font-semibold rounded-lg hover:bg-violet-50 transition-all duration-200 shadow-md hover:shadow-lg cursor-pointer active:scale-95"
+					>
+						Sign up
+					</button>
+					<button
+						data-action="signin"
+						class="px-2 py-1 sm:px-5 sm:py-2 bg-linear-to-tr from-violet-400 via-violet-500/65 to-violet-600 hover:to-violet-500 backdrop-blur-sm text-white text-nowrap font-semibold rounded-lg transition-all duration-200 shadow-md hover:shadow-lg cursor-pointer active:scale-95"
+					>
+						Sign in
+					</button>
+				</div>
+			</div>
+		</header>
+
+		<!-- Modale menu -->
+		<div
+			id="modale-menu"
+			class="bg-indigo-600/60 backdrop-blur-sm sm:border-r p-5 text-white absolute top-0 left-0 h-full overflow-y-auto w-full sm:w-2/6 flex flex-col z-20 font-bold text-xl -translate-x-6/6 transition ease-linear"
+		>
+			<!-- (1) "Close" Button + logo -->
+			<div class="flex justify-between items-center mb-7">
+				<!-- Logo -->
+				<div class="flex items-center gap-3">
+					<div
+						class="w-10 h-10 hover:bg-white/5 rounded-full flex items-center justify-center shadow-md hover:-rotate-3 active:rotate-6 cursor-pointer transition"
+					>
+						<img
+							src="/public/image/_9597ec48-6ba2-4b23-a614-570064077f5b-removebg-preview.png"
+							alt="Logo : Evalua AI"
+							class="rounded-full transition"
+						/>
+					</div>
+				</div>
+				<!-- Close -->
+				<span
+					id="close-modal"
+					class="bg-indigo-400/30 border hover:bg-indigo-400 cursor-pointer p-2.5 rounded-full transition-all"
+				>
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						width="24"
+						height="24"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						class="lucide lucide-x-icon lucide-x"
+					>
+						<path d="M18 6 6 18" />
+						<path d="m6 6 12 12" />
+					</svg>
+				</span>
+			</div>
+			<!-- (2) Functionality field -->
+			<div class="flex flex-col px-5 gap-y-2">
+				<!-- "New chat" button -->
+				<a
+					href="/"
+					class="bg-indigo-400/60 border rounded-3xl hover:bg-indigo-500/60 cursor-pointer transition p-2.5 px-8 flex text-nowrap justify-center"
+				>
+					New chat
+				</a>
+				<!-- "Research chat" button -->
+				<div
+					inputmode="text"
+					class="bg-indigo-400/60 w-full h-full border rounded-3xl hover:bg-indigo-500/60 cursor-pointer transition flex justify-between"
+				>
+					<span class="cursor-pointer w-full h-full flex relative rounded-full">
+						<input
+							type="text"
+							placeholder="Search chat"
+							class="w-full h-full p-2.5 px-8 rounded-full focus:bg-indigo-500/60" />
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							width="24"
+							height="24"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="3"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							class="lucide lucide-search-icon lucide-search absolute right-6 top-2.5"
+						>
+							<path d="m21 21-4.34-4.34" />
+							<circle cx="11" cy="11" r="8" /></svg
+					></span>
+				</div>
+			</div>
+			<hr class="w-full border border-indigo-300/60 my-6" />
+			<!-- Historical of conversation -->
+			<span>Historical</span>
+			<div id="historical" class="flex flex-cols"></div>
+		</div>
+
+		<!-- Main -->
+		<main
+			class="w-full min-h-full flex flex-col justify-center items-center p-3.5 pb-10"
+		>
+			<!-- Topic field -->
+			<section id="topic-field" class="flex">
+				<input
+					class="border-2 border-gray-600 hover:border-gray-400 p-1 px-3.5 rounded-l-lg transition"
+					type="text"
+					id="topic-input"
+					placeholder="Feed my son?"
+				/>
+				<button
+					class="bg-black text-white font-bold p-1 px-2.5 rounded-r-lg cursor-pointer hover:opacity-95 transition"
+					type="submit"
+				>
+					That's it
+				</button>
+			</section>
+
+			<!-- For/Against field -->
+			<div
+				id="for-against-field"
+				class="w-full sm:flex flex-col sm:flex-row gap-1.5 mt-6 opacity-50 pointer-events-none"
+			>
+				<!-- For -->
+				<section
+					id="for-section"
+					class="sm:w-1/2 w-full flex flex-col transition-all duration-300"
+				>
+					<h3 class="text-center text-xl font-bold text-blue-100 mb-1">For</h3>
+					<div class="w-full flex flex-row justify-center">
+						<!-- (Mobile only) Button : switch to "Against" -->
+						<button
+							type="button"
+							class="sm:hidden bg-linear-to-t from-red-500 to-red-900 hover:from-red-900 hover:to-red-500 transition text-red-50 text-sm px-3 py-1 shadow font-bold p-1 rounded-tl-2xl cursor-pointer"
+							id="against-btn"
+						>
+							Against
+						</button>
+						<input
+							class="border-2 border-blue-900 focus:ring-blue-400 bg-blue-400/10 sm:rounded-tl-2xl w-full p-1 px-3.5"
+							type="text"
+							id="for-input"
+							placeholder="Because..."
+						/>
+						<button
+							class="p-1 px-2.5 bg-blue-600 text-white font-bold opacity-90 rounded-tr-2xl cursor-pointer shadow-lg border-b border-black active:border-0"
+							id="add-for-btn"
+							aria-label="Add For Argument"
+						>
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								width="24"
+								height="24"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								class="lucide lucide-plus-icon lucide-plus"
+							>
+								<path d="M5 12h14" />
+								<path d="M12 5v14" />
+							</svg>
+						</button>
+					</div>
+					<!-- For table -->
+					<div
+						class="bg-blue-500/35 shadow-xl backdrop-blur-sm p-4 min-h-96 max-h-96 overflow-auto rounded-b-2xl"
+					>
+						<ul
+							class="wrap-break-word font-bold flex text-blue-50 flex-col gap-2 drop-shadow-lg"
+							id="for-list"
+						></ul>
+					</div>
+				</section>
+
+				<!-- Against -->
+				<section
+					id="against-section"
+					class="sm:w-1/2 w-full hidden sm:flex flex-col transition-all duration-300"
+				>
+					<h3 class="text-center text-xl text-red-100 font-bold mb-1">
+						Against
+					</h3>
+					<div class="w-full flex flex-row justify-center">
+						<!-- (Mobile only) Button : switch to "For"  -->
+						<button
+							type="button"
+							class="sm:hidden bg-linear-to-t from-blue-500 to-blue-200 hover:from-blue-200 hover:to-blue-400 active:from-blue-200 active:to-blue-400 transition text-sm text-blue-700 px-3 py-1 shadow font-bold p-1 rounded-tl-2xl cursor-pointer"
+							id="for-btn"
+						>
+							For
+						</button>
+						<input
+							class="border-2 border-red-900 focus:ring-red-400 bg-red-400/10 sm:rounded-tl-2xl w-full p-1 px-3.5"
+							type="text"
+							id="against-input"
+							placeholder="But..."
+						/>
+						<button
+							class="p-1 px-2.5 bg-red-700 text-white font-bold opacity-90 rounded-tr-2xl cursor-pointer shadow-lg border-b border-black active:border-0"
+							id="add-against-btn"
+							aria-label="Add Against Argument"
+						>
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								width="24"
+								height="24"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								class="lucide lucide-plus-icon lucide-plus"
+							>
+								<path d="M5 12h14" />
+								<path d="M12 5v14" />
+							</svg>
+						</button>
+					</div>
+					<!-- Against table -->
+					<div
+						class="bg-red-500/35 shadow-xl backdrop-blur-sm p-4 min-h-96 max-h-96 overflow-auto rounded-b-2xl"
+					>
+						<ul
+							class="wrap-break-word flex flex-col gap-2 text-red-50 font-bold"
+							id="against-list"
+						></ul>
+					</div>
+				</section>
+			</div>
+
+			<!-- Buttons field -->
+			<section
+				id="btn-field"
+				class="w-full flex justify-center mt-6 mb-8 transition"
+			>
+				<button
+					id="new-btn"
+					class="bg-white p-2.5 text-black font-bold rounded-l-2xl px-12 hover:bg-gray-200 cursor-pointer transition opacity-50 pointer-events-none"
+				>
+					New
+				</button>
+				<button
+					id="ask-btn"
+					class="bg-indigo-600 p-2.5 flex items-center flex-row text-white text-xl font-bold rounded-r-2xl w-40 cursor-pointer hover:bg-indigo-700 hover:translate-y-0.5 active:translate-y-1 transition opacity-50 pointer-events-none"
+				>
+					<span class="m-auto">Conclude</span>
+					<img src="/public/image/hammer.png" alt="" class="w-10 transition" />
+				</button>
+			</section>
+
+			<!-- AI response chat -->
+			<form
+				id="ai-chat-container"
+				class="mt-6 p-4 border rounded-xl shadow bg-white/15 backdrop-blur-lg w-full sm:w-5/6 max-w mx-auto hidden"
+			>
+				<!-- AI response -->
+				<div
+					id="ai-response"
+					class="mt-4 text-white rounded-xl shadow wrap-break-words min-h-20"
+				>
+					<!-- AI response will be injected later with JS -->
+				</div>
+
+				<!-- User's response -->
+				<div
+					id="user-response"
+					class="mt-4 p-4 bg-linear-to-r from-blue-900 via-black to-red-900 text-white rounded-xl shadow wrap-break-words min-h-20 hidden"
+				>
+					<!-- User response will be injected later with JS -->
+				</div>
+
+				<!-- Text input -->
+				<div class="mt-4 flex h-12">
+					<button
+						id="new-btn"
+						class="bg-linear-to-l from-gray-400 hover:via-gray-300 to-white border-black h-full rounded-l-full p-2.5 text-black font-bold px-8 cursor-pointer"
+					>
+						New
+					</button>
+					<textarea
+						id="ai-input"
+						name="prompt"
+						rows="1"
+						cols="1"
+						class="flex-1 p-2 pl-4 h-full bg-white/5 border border-white/35 hover:border-white/45 focus:outline-none focus:border-black resize-none"
+						placeholder="Continue..."
+					></textarea>
+					<button
+						id="ai-send-btn"
+						type="submit"
+						class="bg-linear-to-r from-blue-900 via-black to-red-900 text-white h-full font-semibold p-3 px-5 border-2 border-black rounded-r-full cursor-pointer transition-all duration-500 active:scale-95 ease-in-out"
+					>
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							width="24"
+							height="24"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							class="lucide lucide-send-horizontal-icon lucide-send-horizontal"
+						>
+							<path
+								d="M3.714 3.048a.498.498 0 0 0-.683.627l2.843 7.627a2 2 0 0 1 0 1.396l-2.842 7.627a.498.498 0 0 0 .682.627l18-8.5a.5.5 0 0 0 0-.904z"
+							/>
+							<path d="M6 12h16" />
+						</svg>
+					</button>
+				</div>
+			</form>
+		</main>
+
+		<!-- Footer -->
+		<footer
+			class="flex items-center h-24 justify-center gap-3 bg-black relative left-0 bottom-0 w-full p-4"
+		>
+			<div>
+				<h4 class="text-white">© Evalua App 2025</h4>
+			</div>
+		</footer>
+		<!-- Main JS -->
+		<script type="module" src="/src/main.js"></script>
+	</body>
+</html>

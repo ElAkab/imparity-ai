@@ -1,0 +1,43 @@
+@import "tailwindcss";
+
+.animate-gradient {
+	animation: gradient 15s ease infinite;
+}
+
+/* Styles pour le formatage markdown */
+.whitespace-pre-wrap h1 {
+	font-size: 1.5em;
+	font-weight: bold;
+	margin: 1em 0;
+}
+.whitespace-pre-wrap h2 {
+	font-size: 1.3em;
+	font-weight: bold;
+	margin: 0.8em 0;
+}
+.whitespace-pre-wrap h3 {
+	font-size: 1.1em;
+	font-weight: bold;
+	margin: 0.6em 0;
+}
+.whitespace-pre-wrap ul {
+	list-style-type: disc;
+	margin-left: 1em;
+}
+.whitespace-pre-wrap ol {
+	list-style-type: decimal;
+	margin-left: 1em;
+}
+.whitespace-pre-wrap li {
+	margin: 0.3em 0;
+}
+.whitespace-pre-wrap code {
+	background: #2d374850;
+	padding: 0.2em 0.4em;
+	border-radius: 0.2em;
+}
+.whitespace-pre-wrap blockquote {
+	border-left: 3px solid #4a5568;
+	padding-left: 1em;
+	margin: 1em 0;
+}
