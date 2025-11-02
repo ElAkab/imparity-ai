@@ -181,6 +181,9 @@ newBtn.addEventListener("click", () => {
 	});
 });
 
+// =========================
+// Ask Button
+// =========================
 askBtn.addEventListener("mouseover", async () => {
 	hammerIcon.classList.add("rotate-6");
 });
@@ -219,6 +222,15 @@ askBtn.addEventListener("click", async () => {
 		analyzeWithStream(evaluation);
 	}, 500);
 });
+
+// Function to update ask button state
+function updateAskBtnState() {
+	if (evaluation.pros.length > 0 && evaluation.cons.length > 0) {
+		askBtn.classList.remove("opacity-50", "pointer-events-none");
+	} else {
+		askBtn.classList.add("opacity-50", "pointer-events-none");
+	}
+}
 
 // =========================
 // Function handleTopicInput (20% AI help)
@@ -295,18 +307,26 @@ function handleTopicInput(topicValue) {
 
 		let lastTopic = input.value;
 
-		const finishEdit = () => {
-			if (!topicField.contains(input)) return;
-			h2.innerHTML = `${
-				input.value || lastTopic
-			}<div class="h-full w-0.5 bg-white mx-2"></div><i data-lucide="pencil" class="-mr-2"></i>`;
-			topicField.replaceChild(h2, input);
-			editBtn.remove();
+		const finishEdit = (() => {
+			let finished = false; // empêche les appels multiples
+			return () => {
+				if (finished) return;
+				finished = true;
 
-			evaluation.topic = h2.textContent;
-			createIcons({ icons });
-			console.log(`Topic edited : ${evaluation.topic}`);
-		};
+				if (!topicField.contains(input)) return; // vérifie que l'input est toujours dans le DOM
+
+				h2.innerHTML = `${
+					input.value || lastTopic
+				}<div class="h-full w-0.5 bg-white mx-2"></div><i data-lucide="pencil" class="-mr-2"></i>`;
+
+				topicField.replaceChild(h2, input);
+				editBtn.remove();
+
+				evaluation.topic = h2.textContent;
+				createIcons({ icons });
+				console.log(`Topic edited : ${evaluation.topic}`);
+			};
+		})();
 
 		input.addEventListener("blur", finishEdit);
 		input.addEventListener("keydown", (e) => {
@@ -319,11 +339,7 @@ function handleTopicInput(topicValue) {
 // Function displayValue (45% AI help)
 // =========================
 function displayValue(item, container, type) {
-	if (
-		forListContainer.querySelector("li") ||
-		againstListContainer.querySelector("li")
-	)
-		askBtn.classList.remove("opacity-50", "pointer-events-none");
+	updateAskBtnState();
 
 	const element = document.createElement("li");
 	element.classList.add(
@@ -338,16 +354,35 @@ function displayValue(item, container, type) {
 
 	const text = document.createElement("p");
 	text.textContent = item.text;
+	text.classList.add("text-center", "flex-1", "break-words");
 
 	const editIcon = document.createElement("span");
 	editIcon.innerHTML = '<i data-lucide="pen"></i>';
-	editIcon.classList.add("cursor-pointer", "text-white", "font-bold");
+	editIcon.classList.add(
+		"cursor-pointer",
+		"text-white",
+		"font-bold",
+		"sm:hidden"
+	);
 
 	const deleteIcon = document.createElement("span");
 	deleteIcon.innerHTML = '<i data-lucide="trash-2"></i>';
-	deleteIcon.classList.add("cursor-pointer", "text-red-600");
+	deleteIcon.classList.add(
+		"cursor-pointer",
+		"text-red-600",
+		"font-bold",
+		"sm:hidden"
+	);
 
 	element.append(deleteIcon, text, editIcon);
+	element.addEventListener("mouseover", () => {
+		editIcon.classList.remove("sm:hidden");
+		deleteIcon.classList.remove("sm:hidden");
+	});
+	element.addEventListener("mouseout", () => {
+		editIcon.classList.add("sm:hidden");
+		deleteIcon.classList.add("sm:hidden");
+	});
 	container.append(element);
 	createIcons({ icons });
 
@@ -368,12 +403,18 @@ function displayValue(item, container, type) {
 			if (finished) return;
 			finished = true;
 			if (!element.contains(input)) return;
-
-			text.textContent = input.value || item.text;
-			element.replaceChild(text, input);
-
 			const arr = type === "pros" ? evaluation.pros : evaluation.cons;
 			const index = arr.findIndex((el) => el.id === item.id);
+
+			text.textContent = input.value || item.text;
+			if (input.value === "") {
+				element.remove();
+				if (index > -1) arr.splice(index, 1);
+
+				updateAskBtnState();
+				return;
+			}
+			element.replaceChild(text, input);
 			if (index > -1) arr[index].text = input.value;
 			console.log(arr);
 			item.text = input.value;
@@ -393,6 +434,8 @@ function displayValue(item, container, type) {
 		const arr = type === "pros" ? evaluation.pros : evaluation.cons;
 		const index = arr.findIndex((el) => el.id === item.id);
 		if (index > -1) arr.splice(index, 1);
+
+		updateAskBtnState();
 	});
 }
 
