@@ -497,7 +497,7 @@ async function analyzeWithStream(evaluation, bubbleContext) {
 	} catch (error) {
 		console.error("Erreur:", error);
 		if (contentDiv) {
-			contentDiv.innerHTML = `<p class="text-red-500">❌ Erreur: ${error.message}</p>`;
+			contentDiv.innerHTML = `<p class="text-red-500 font-bold">❌ Erreur: ${error.message}</p>`;
 		}
 		isStreaming = false;
 		if (aiInput) aiInput.disabled = false;
@@ -582,7 +582,7 @@ function createAssistantBubble() {
 
 	const bubble = document.createElement("div");
 	bubble.className =
-		"relative p-12 rounded-xl border shadow-md bg-gradient-to-bl from-indigo-400/70 via-indigo-400/70 to-indigo-600/65 backdrop-blur-sm text-white drop-shadow-md";
+		"relative p-12 rounded-xl border shadow-md bg-[radial-gradient(ellipse_at_top,_rgba(139,92,246,0.7)_0%,_rgba(99,21,244,0.65)_100%)] backdrop-blur-sm text-white drop-shadow-md";
 	bubble.innerHTML = ""; // Will be filled during streaming
 
 	// typing indicator au dessus de la bulle (sera supprimé au premier chunk)
