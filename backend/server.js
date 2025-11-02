@@ -8,6 +8,35 @@ const app = express();
 app.use(cors({ origin: "http://localhost:5173" }));
 app.use(express.json());
 
+let db = { topic: "", pros: [], cons: [], followUp: [], messages: [] }; // In-memory database
+
+// Routes for managing arguments
+app.get("/api/arguments", (req, res) => {
+	res.json(db);
+});
+
+app.post("/api/arguments", (req, res) => {
+	const { topic, pros, cons, followUp, messages } = req.body;
+
+	// Basic validation
+	if (!topic) {
+		return res
+			.status(400)
+			.json({ success: false, message: "Le champ 'topic' est requis." });
+	}
+
+	// Update the in-memory database
+	db = {
+		topic,
+		pros: Array.isArray(pros) ? pros : [],
+		cons: Array.isArray(cons) ? cons : [],
+		followUp: Array.isArray(followUp) ? followUp : [],
+		messages: Array.isArray(messages) ? messages : [],
+	};
+
+	res.json({ success: true, db });
+});
+
 // Route for analyzing with streaming response
 app.post("/api/analyze-stream", async (req, res) => {
 	try {

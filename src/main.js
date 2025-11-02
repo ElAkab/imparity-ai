@@ -1,13 +1,44 @@
-import "./style.css";
-
 // Icons initialization
 import { createIcons, icons } from "lucide";
+import { loadArguments, saveArguments } from "./utils/apiClient.js";
+
+// Global variables for chat messages
+let chatMessages = [];
 
 let evaluation = {
 	topic: "",
 	pros: [],
 	cons: [],
+	followUp: [],
+	messages: chatMessages,
 };
+
+// Load data from the server
+async function displayArguments() {
+	try {
+		const data = await loadArguments();
+		data.topic ? console.log("Arguments chargés :", data) : "";
+	} catch (err) {
+		console.error("Erreur lors du chargement :", err);
+	}
+}
+displayArguments();
+
+// Save data to the server
+async function sendArguments() {
+	const topic = evaluation.topic || "";
+	const pros = (evaluation.pros || []).map((item) => item.text);
+	const cons = (evaluation.cons || []).map((item) => item.text);
+	const followUp = (evaluation.followUp || []).map((item) => item.text);
+
+	try {
+		const messages = chatMessages.map((msg) => msg.content);
+
+		await saveArguments(topic, pros, cons, followUp, messages);
+	} catch (err) {
+		console.error("Erreur lors de la sauvegarde :", err);
+	}
+}
 
 // Menu button / modal
 let menuBtn = document.querySelector("#menu-btn");
@@ -137,7 +168,12 @@ againstBtn.addEventListener("click", () => {
 // =========================
 newBtn.addEventListener("click", () => {
 	// Reset object evaluation
-	evaluation = { topic: "", pros: [], cons: [] };
+	let evaluation = {
+		topic: "",
+		pros: [],
+		cons: [],
+		followUp: [],
+	};
 	console.log(evaluation);
 
 	// clean UI
@@ -193,17 +229,19 @@ askBtn.addEventListener("mouseout", async () => {
 });
 
 askBtn.addEventListener("click", async () => {
-	// clean and rebuild the evaluation object
+	// Save current arguments
+	await sendArguments();
+
+	// Clean and rebuild the evaluation object
 	evaluation = {
 		topic: evaluation.topic,
 		pros: Array.from(forListContainer.querySelectorAll("li p")).map((el) => ({
 			text: el.textContent,
 		})),
 		cons: Array.from(againstListContainer.querySelectorAll("li p")).map(
-			(el) => ({
-				text: el.textContent,
-			})
+			(el) => ({ text: el.textContent })
 		),
+		messages: chatMessages,
 	};
 
 	// Display AI chat container
@@ -347,7 +385,10 @@ function displayValue(item, container, type) {
 		"flex",
 		"justify-between",
 		"items-center",
-		"gap-2"
+		"pb-2",
+		"border-b-2",
+		"border-white/20",
+		"last:border-b-0"
 	);
 
 	element.dataset.id = item.id;
@@ -375,11 +416,15 @@ function displayValue(item, container, type) {
 	);
 
 	element.append(deleteIcon, text, editIcon);
+
 	element.addEventListener("mouseover", () => {
+		element.classList.add("cursor-pointer", "transition");
 		editIcon.classList.remove("sm:hidden");
 		deleteIcon.classList.remove("sm:hidden");
 	});
+
 	element.addEventListener("mouseout", () => {
+		element.classList.add("cursor-pointer", "transition");
 		editIcon.classList.add("sm:hidden");
 		deleteIcon.classList.add("sm:hidden");
 	});
@@ -516,6 +561,9 @@ async function analyzeWithStream(evaluation, bubbleContext) {
 							aiInput.focus();
 						}
 						if (aiSendBtn) aiSendBtn.disabled = false;
+
+						// Save updated chat messages
+						sendArguments();
 						return;
 					}
 
@@ -590,8 +638,6 @@ function formatText(text) {
 const aiInput = document.getElementById("ai-input");
 const aiSendBtn = document.getElementById("ai-send-btn");
 
-let chatMessages = [];
-
 // =========================
 // Append user message to UI and store in history (100% AI help, I confess)
 // =========================
@@ -662,8 +708,8 @@ async function sendAiMessage() {
 		topic: evaluation.topic,
 		pros: evaluation.pros,
 		cons: evaluation.cons,
-		followUp: text,
-		messages: chatMessages, // Optionslly include full chat history
+		followUp: text, // User's follow-up question
+		messages: chatMessages, // Full chat history
 	};
 
 	// Create assistant bubble and analyze with stream
