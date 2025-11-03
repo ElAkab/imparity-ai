@@ -1,6 +1,10 @@
 // Icons initialization
 import { createIcons, icons } from "lucide";
-import { loadArguments, saveArguments } from "./utils/apiClient.js";
+import {
+	loadArguments,
+	saveArguments,
+	clearArguments,
+} from "./utils/apiClient.js";
 
 // Global variables for chat messages
 let chatMessages = [];
@@ -62,6 +66,7 @@ const againstListContainer = document.querySelector("#against-list");
 
 // Buttons
 const newBtn = document.querySelector("#new-btn");
+const newBtn2 = document.querySelector("#new-btn2");
 const askBtn = document.querySelector("#ask-btn");
 const hammerIcon = document.querySelector("#ask-btn img");
 
@@ -229,56 +234,8 @@ againstBtn.addEventListener("click", () => {
 // =========================
 // New Button
 // =========================
-newBtn.addEventListener("click", () => {
-	// Reset object evaluation
-	let evaluation = {
-		topic: "",
-		pros: [],
-		cons: [],
-		followUp: [],
-	};
-	console.log(evaluation);
-
-	// clean UI
-	forListContainer.innerHTML = "";
-	againstListContainer.innerHTML = "";
-
-	// Reset topic field
-	topicField.innerHTML = `
-		<input
-			class="border-2 border-gray-600 hover:border-gray-400 p-1 px-3.5 rounded-l-lg transition"
-			type="text"
-			id="topic-input"
-			placeholder="Feed my son?"
-		/>
-		<button
-			class="bg-black text-white font-bold p-1 px-2.5 rounded-r-lg cursor-pointer hover:opacity-95 transition"
-			type="submit"
-		>
-			That's it
-		</button>
-	`;
-
-	// Re-hook inputs and buttons
-	topicInput = document.querySelector("#topic-input");
-	topicBtn = document.querySelector("#topic-btn");
-
-	// disable for/against and new button
-	forAgainstField.classList.add("opacity-50", "pointer-events-none");
-	newBtn.classList.add("opacity-50", "pointer-events-none");
-
-	// Re-hook topic button event
-	topicBtn.addEventListener("click", () => {
-		const topicValue = topicInput.value.trim();
-		if (topicValue === "") return;
-
-		forAgainstField.classList.remove("opacity-50", "pointer-events-none");
-		newBtn.classList.remove("opacity-50", "pointer-events-none");
-
-		evaluation.topic = topicValue;
-		handleTopicInput(topicValue);
-	});
-});
+newBtn.addEventListener("click", () => clean());
+newBtn2.addEventListener("click", () => clean());
 
 // =========================
 // Ask Button
@@ -568,18 +525,59 @@ againstInput.addEventListener("keydown", (e) =>
 	handleEnterKey(againstInput, againstBtn, e)
 );
 
+async function clean() {
+	// Reset object evaluation
+	evaluation = {
+		topic: "",
+		pros: [],
+		cons: [],
+		followUp: [],
+		messages: [], // clean chat
+	};
+
+	chatMessages = []; // clean global messages
+
+	await clearArguments();
+	updateAskBtnState();
+
+	// clean UI
+	forListContainer.innerHTML = "";
+	againstListContainer.innerHTML = "";
+
+	// Reset topic field
+	topicField.innerHTML = `
+		<input
+			class="border-2 border-gray-600 hover:border-gray-400 p-1 px-3.5 rounded-l-lg transition"
+			type="text"
+			id="topic-input"
+			placeholder="Feed my son?"
+		/>
+		<button
+			id="topic-btn"
+			class="bg-black text-white font-bold p-1 px-2.5 rounded-r-lg cursor-pointer hover:opacity-95 transition"
+			type="submit"
+		>
+			That's it
+		</button>
+		`;
+
+	// disable for/against and new button
+	forAgainstField.classList.add("opacity-50", "pointer-events-none");
+	newBtn.classList.add("opacity-50", "pointer-events-none");
+}
+
 // =========================
 // Fonction to analyze with streaming (100% AI help, shame on me)
 // =========================
 let isStreaming = false;
 
 async function analyzeWithStream(evaluation, bubbleContext) {
-	// Désactiver l'input d'IA pendant le streaming
+	// Set streaming state
 	isStreaming = true;
 	if (aiInput) aiInput.disabled = true;
 	if (aiSendBtn) aiSendBtn.disabled = true;
 
-	// Récupérer les éléments du contexte ou créer une nouvelle bulle
+	// Get or create bubble context
 	let wrapper, typing, contentDiv;
 	if (bubbleContext) {
 		wrapper = bubbleContext.wrapper;
@@ -781,7 +779,12 @@ async function sendAiMessage() {
 }
 
 // Send AI message on button click
-aiSendBtn.addEventListener("click", () => sendAiMessage());
+aiSendBtn.addEventListener("click", (e) => {
+	e.preventDefault();
+	if (!isStreaming) {
+		sendAiMessage();
+	}
+});
 
 // Send AI message on Enter key
 aiInput.addEventListener("keydown", (e) => {

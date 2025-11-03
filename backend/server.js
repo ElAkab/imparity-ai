@@ -44,6 +44,18 @@ app.post("/api/arguments", (req, res) => {
 	res.json({ success: true, db });
 });
 
+app.delete("/api/arguments", (req, res) => {
+	// Exemple si tu stockes tout dans un fichier ou une variable
+	db = {
+		topic: "",
+		pros: [],
+		cons: [],
+		followUp: [],
+		messages: [],
+	};
+	res.json({ message: "Arguments reset successfully." });
+});
+
 // Route for analyzing with streaming response
 app.post("/api/analyze-stream", async (req, res) => {
 	try {

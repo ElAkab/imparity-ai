@@ -20,3 +20,10 @@ export async function saveArguments(
 	console.log("Données sauvegardées :", data);
 	return data;
 }
+
+export async function clearArguments() {
+	const res = await fetch("http://localhost:3000/api/arguments", {
+		method: "DELETE",
+	});
+	if (!res.ok) throw new Error(`HTTP ${res.status}`);
+}
