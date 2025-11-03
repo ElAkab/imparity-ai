@@ -52,7 +52,7 @@ app.delete("/api/arguments", (req, res) => {
 // Route for analyzing with streaming response
 app.post("/api/analyze-stream", async (req, res) => {
 	try {
-		const evaluation = req.body;
+		let evaluation = req.body;
 		const prompt = createPrompt(evaluation);
 
 		// Configure headers for SSE
@@ -109,7 +109,7 @@ app.post("/api/analyze-stream", async (req, res) => {
 // Keep the non-streaming route for compatibility
 app.post("/api/analyze", async (req, res) => {
 	try {
-		const evaluation = req.body;
+		let evaluation = req.body;
 		const prompt = createPrompt(evaluation);
 
 		const response = await fetch("http://localhost:11434/api/generate", {

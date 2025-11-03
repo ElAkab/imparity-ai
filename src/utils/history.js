@@ -2,6 +2,9 @@
 
 import { createIcons, icons } from "lucide";
 import { getSessionId } from "./session.js"; // fonction pour générer un ID unique
+import { displayValue, handleTopicInput } from "./display.js";
+import { createAssistantBubble } from "./chat.js";
+import { updateAskBtnState } from "../main.js";
 
 // Récupérer toutes les sessions du localStorage
 export function loadAllSessions() {
@@ -76,9 +79,19 @@ export function loadSession(sessionId) {
 	const session = sessions[sessionId];
 	if (!session) return alert("Session introuvable");
 
-	// Remplir le topic
-	const topicInput = document.getElementById("topic-input");
-	topicInput.value = session.topic;
+	// Apply session data to UI
+	handleTopicInput(session.topic);
+
+	// Display and enable input fields and buttons
+	const forAgainstField = document.getElementById("for-against-field");
+	const newBtn = document.querySelector("#new-btn");
+	const askBtn = document.querySelector("#ask-btn");
+	forAgainstField.classList.remove("opacity-50", "pointer-events-none");
+	newBtn.classList.remove("opacity-50", "pointer-events-none");
+	console.log(askBtn.classList);
+	askBtn.classList.replace("opacity-50", "opacity-100");
+	askBtn.classList.replace("pointer-events-none", "cursor-pointer");
+	console.log(askBtn.classList);
 
 	// Pour les pros/cons, tu peux réutiliser tes fonctions displayValue
 	const forListContainer = document.getElementById("for-list");
@@ -100,13 +113,16 @@ export function loadSession(sessionId) {
 		followUp: [],
 	};
 
-	// Afficher chat
-	chatMessages = session.messages;
-	const userResponse = document.getElementById("user-response");
-	userResponse.innerHTML = "";
-	chatMessages.forEach((msg) => {
-		if (msg.role === "user") appendUserMessageToUI(msg.content);
-		else createAssistantBubble().bubble.innerHTML = formatText(msg.content);
+	// display chat messages
+	createAssistantBubble();
+	session.messages.forEach((msg) => {
+		if (msg.sender === "user") {
+			appendUserMessageToUI(msg.text);
+		} else if (msg.sender === "assistant") {
+			// create assistant bubble and append message
+			createAssistantBubble();
+			// Append assistant message logic here
+		}
 	});
 
 	// Fermer le menu modal
