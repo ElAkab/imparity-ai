@@ -8,40 +8,33 @@ const app = express();
 app.use(cors({ origin: "http://localhost:5173" }));
 app.use(express.json());
 
-let db = { topic: "", pros: [], cons: [], followUp: [], messages: [] }; // In-memory database
+let db = {}; // database
 
 // Routes for managing arguments
 app.get("/api/arguments", (req, res) => {
-	res.json(db);
+	const defaultSession = db["default"] || {
+		topic: "",
+		pros: [],
+		cons: [],
+		followUp: [],
+		messages: [],
+	};
+	res.json(defaultSession);
 });
 
 app.post("/api/arguments", (req, res) => {
-	const { topic, pros, cons, followUp, messages } = req.body;
+	const { sessionId, topic, pros, cons, followUp, messages } = req.body;
+	if (!sessionId) return res.status(400).json({ error: "Session manquante" });
 
-	// Basic validation
-	if (!topic) {
-		return res
-			.status(400)
-			.json({ success: false, message: "Le champ 'topic' est requis." });
-	}
-
-	// Update the in-memory database
-	db = {
+	db[sessionId] = {
 		topic,
 		pros: Array.isArray(pros) ? pros : [],
 		cons: Array.isArray(cons) ? cons : [],
 		followUp: Array.isArray(followUp) ? followUp : [],
-		messages: Array.isArray(messages)
-			? messages.filter(
-					(msg) =>
-						msg &&
-						typeof msg.role === "string" &&
-						typeof msg.content === "string"
-			  )
-			: [],
+		messages: Array.isArray(messages) ? messages : [],
 	};
 
-	res.json({ success: true, db });
+	res.json({ success: true, db: db[sessionId] });
 });
 
 app.delete("/api/arguments", (req, res) => {

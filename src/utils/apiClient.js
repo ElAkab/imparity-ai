@@ -8,22 +8,28 @@ export async function saveArguments(
 	topic,
 	pros,
 	cons,
-	followUp = [],
-	messages = []
+	followUp,
+	messages,
+	sessionId
 ) {
 	const res = await fetch("http://localhost:3000/api/arguments", {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
-		body: JSON.stringify({ topic, pros, cons, followUp, messages }),
+		body: JSON.stringify({
+			sessionId, // <- obligatoire
+			topic,
+			pros,
+			cons,
+			followUp,
+			messages,
+		}),
 	});
-	const data = await res.json();
-	console.log("Données sauvegardées :", data);
-	return data;
+	return res.json();
 }
 
 export async function clearArguments() {
 	const res = await fetch("http://localhost:3000/api/arguments", {
 		method: "DELETE",
 	});
-	if (!res.ok) throw new Error(`HTTP ${res.status}`);
+	return res.json();
 }

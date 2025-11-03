@@ -5,6 +5,15 @@ import {
 	saveArguments,
 	clearArguments,
 } from "./utils/apiClient.js";
+import { postWithSession } from "./utils/session.js";
+import {
+	loadAllSessions,
+	renderHistory,
+	loadSession,
+	saveSession,
+} from "./utils/history.js";
+
+const SESSION_ID = "default"; // ou généré dynamiquement
 
 // Global variables for chat messages
 let chatMessages = [];
@@ -17,26 +26,37 @@ let evaluation = {
 	messages: chatMessages,
 };
 
+await saveArguments(
+	evaluation.topic,
+	evaluation.pros.map((p) => p.text),
+	evaluation.cons.map((c) => c.text),
+	evaluation.followUp,
+	chatMessages,
+	SESSION_ID
+);
+
 // Save data to the server
 async function sendArguments() {
 	const topic = evaluation.topic || "";
 	const pros = (evaluation.pros || []).map((item) => item.text);
 	const cons = (evaluation.cons || []).map((item) => item.text);
 	const followUp = (evaluation.followUp || []).map((item) => item.text);
+	const messages = chatMessages.map((msg) => ({
+		role: msg.role,
+		content: msg.content,
+	}));
 
 	try {
-		const messages = chatMessages.map((msg) => ({
-			role: msg.role,
-			content: msg.content,
-		}));
-
-		await saveArguments(topic, pros, cons, followUp, messages);
+		await saveArguments(topic, pros, cons, followUp, messages, SESSION_ID);
+		saveSession(topic, evaluation.pros, evaluation.cons, chatMessages);
 	} catch (err) {
 		console.error("Erreur lors de la sauvegarde :", err);
 	}
 }
 
-// Menu button / modal
+renderHistory();
+
+// Menu button / menu
 let menuBtn = document.querySelector("#menu-btn");
 let modalMenu = document.querySelector("#modale-menu");
 
