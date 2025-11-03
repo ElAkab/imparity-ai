@@ -13,17 +13,6 @@ let evaluation = {
 	messages: chatMessages,
 };
 
-// Load data from the server
-async function displayArguments() {
-	try {
-		const data = await loadArguments();
-		data.topic ? console.log("Arguments chargés :", data) : "";
-	} catch (err) {
-		console.error("Erreur lors du chargement :", err);
-	}
-}
-displayArguments();
-
 // Save data to the server
 async function sendArguments() {
 	const topic = evaluation.topic || "";
@@ -32,7 +21,10 @@ async function sendArguments() {
 	const followUp = (evaluation.followUp || []).map((item) => item.text);
 
 	try {
-		const messages = chatMessages.map((msg) => msg.content);
+		const messages = chatMessages.map((msg) => ({
+			role: msg.role,
+			content: msg.content,
+		}));
 
 		await saveArguments(topic, pros, cons, followUp, messages);
 	} catch (err) {
@@ -74,7 +66,70 @@ const askBtn = document.querySelector("#ask-btn");
 const hammerIcon = document.querySelector("#ask-btn img");
 
 const aiChatContainer = document.getElementById("ai-chat-container");
-const aiResponse = document.getElementById("ai-response");
+const userResponse = document.getElementById("user-response");
+
+// Load data from the server
+async function displayArguments() {
+	try {
+		const data = await loadArguments();
+		evaluation.topic = data.topic || "";
+		evaluation.pros = (data.pros || []).map((text, index) => ({
+			id: Date.now() + index,
+			text,
+		}));
+		evaluation.cons = (data.cons || []).map((text, index) => ({
+			id: Date.now() + index,
+			text,
+		}));
+		evaluation.followUp = data.followUp || [];
+		chatMessages = (data.messages || []).filter(
+			(msg) =>
+				msg && typeof msg.role === "string" && typeof msg.content === "string"
+		);
+		evaluation.messages = chatMessages;
+
+		// Display topic
+		if (evaluation.topic) {
+			handleTopicInput(evaluation.topic);
+			forAgainstField.classList.remove("opacity-50", "pointer-events-none");
+			newBtn.classList.remove("opacity-50", "pointer-events-none");
+		}
+
+		// Display pros
+		evaluation.pros.forEach((item) =>
+			displayValue(item, forListContainer, "pros")
+		);
+
+		// Display cons
+		evaluation.cons.forEach((item) =>
+			displayValue(item, againstListContainer, "cons")
+		);
+
+		// Display chat messages
+		chatMessages.forEach((msg) => {
+			if (msg.role === "user") {
+				const userMsg = document.createElement("div");
+				userMsg.className =
+					"self-end bg-linear-to-r from-blue-900 via-black to-red-900 text-white p-3 rounded-xl mb-2 max-w-full break-words";
+				userMsg.style.alignSelf = "flex-end";
+				userMsg.textContent = msg.content;
+				userResponse.appendChild(userMsg);
+			} else if (msg.role === "assistant") {
+				const assistantMsg = document.createElement("div");
+				assistantMsg.className =
+					"relative p-12 rounded-xl border shadow-md bg-[radial-gradient(ellipse_at_top,_rgba(139,92,246,0.7)_0%,_rgba(99,21,244,0.65)_100%)] backdrop-blur-sm text-white drop-shadow-md mb-2 max-w-full break-words";
+				assistantMsg.innerHTML = formatText(msg.content);
+				userResponse.appendChild(assistantMsg);
+			}
+		});
+
+		aiChatContainer.classList.remove("hidden");
+		data.topic ? console.log("Arguments chargés :", data) : "";
+	} catch (err) {
+		console.error("Erreur lors du chargement :", err);
+	}
+}
+displayArguments();
 
 // Initialize icons
 createIcons({ icons });
@@ -117,6 +172,7 @@ topicBtn.addEventListener("click", () => {
 	console.log(`Topic : ${evaluation.topic}`);
 
 	handleTopicInput(topicValue);
+	sendArguments();
 });
 
 // =========================
@@ -146,6 +202,7 @@ forBtn.addEventListener("click", () => {
 		displayValue({ id, text: value }, forListContainer, "pros");
 		forInput.value = "";
 		console.log(evaluation.pros);
+		sendArguments();
 	}
 });
 
@@ -160,6 +217,7 @@ againstBtn.addEventListener("click", () => {
 		displayValue({ id, text: value }, againstListContainer, "cons");
 		againstInput.value = "";
 		console.log(evaluation.cons);
+		sendArguments();
 	}
 });
 
@@ -363,6 +421,7 @@ function handleTopicInput(topicValue) {
 				evaluation.topic = h2.textContent;
 				createIcons({ icons });
 				console.log(`Topic edited : ${evaluation.topic}`);
+				sendArguments();
 			};
 		})();
 
@@ -463,6 +522,7 @@ function displayValue(item, container, type) {
 			if (index > -1) arr[index].text = input.value;
 			console.log(arr);
 			item.text = input.value;
+			sendArguments();
 		};
 
 		input.addEventListener("blur", finishEdit);
@@ -643,8 +703,7 @@ const aiSendBtn = document.getElementById("ai-send-btn");
 // =========================
 function appendUserMessageToUI(text) {
 	// Use AI response container
-	const history = document.getElementById("ai-response");
-	history.classList.remove("hidden");
+	userResponse.classList.remove("hidden");
 
 	const msg = document.createElement("div");
 	msg.className =
@@ -652,8 +711,8 @@ function appendUserMessageToUI(text) {
 	msg.style.alignSelf = "flex-end";
 	msg.textContent = text;
 
-	history.appendChild(msg);
-	history.scrollTop = history.scrollHeight;
+	userResponse.appendChild(msg);
+	userResponse.scrollTop = userResponse.scrollHeight;
 
 	// Store in chat history
 	chatMessages.push({ role: "user", content: text });
@@ -663,8 +722,7 @@ function appendUserMessageToUI(text) {
 // Create assistant bubble (100% AI help, I beg you don't judge me.. I tried my best i swear)
 // =========================
 function createAssistantBubble() {
-	const history = document.getElementById("ai-response");
-	history.classList.remove("hidden");
+	userResponse.classList.remove("hidden");
 
 	const wrapper = document.createElement("div");
 	wrapper.className = "mb-2";
@@ -684,8 +742,8 @@ function createAssistantBubble() {
 
 	wrapper.appendChild(typing);
 	wrapper.appendChild(bubble);
-	history.appendChild(wrapper);
-	history.scrollTop = history.scrollHeight;
+	userResponse.appendChild(wrapper);
+	userResponse.scrollTop = userResponse.scrollHeight;
 
 	return { wrapper, typing, bubble };
 }

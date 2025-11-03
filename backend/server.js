@@ -31,7 +31,14 @@ app.post("/api/arguments", (req, res) => {
 		pros: Array.isArray(pros) ? pros : [],
 		cons: Array.isArray(cons) ? cons : [],
 		followUp: Array.isArray(followUp) ? followUp : [],
-		messages: Array.isArray(messages) ? messages : [],
+		messages: Array.isArray(messages)
+			? messages.filter(
+					(msg) =>
+						msg &&
+						typeof msg.role === "string" &&
+						typeof msg.content === "string"
+			  )
+			: [],
 	};
 
 	res.json({ success: true, db });
