@@ -110,7 +110,7 @@ async function displayArguments() {
 			if (msg.role === "user") {
 				const userMsg = document.createElement("div");
 				userMsg.className =
-					"self-end bg-linear-to-r from-blue-900 via-black to-red-900 text-white p-3 rounded-xl mb-2 max-w-full break-words";
+					"self-end bg-linear-to-r from-blue-900 via-black to-red-900 text-center text-white p-3 rounded-xl mb-2 max-w-full break-words";
 				userMsg.style.alignSelf = "flex-end";
 				userMsg.textContent = msg.content;
 				userResponse.appendChild(userMsg);
@@ -120,10 +120,15 @@ async function displayArguments() {
 					"relative p-12 rounded-xl border shadow-md bg-[radial-gradient(ellipse_at_top,_rgba(139,92,246,0.7)_0%,_rgba(99,21,244,0.65)_100%)] backdrop-blur-sm text-white drop-shadow-md mb-2 max-w-full break-words";
 				assistantMsg.innerHTML = formatText(msg.content);
 				userResponse.appendChild(assistantMsg);
+
+				topicField.classList.add("opacity-50", "pointer-events-none");
+				forAgainstField.classList.add("opacity-50", "pointer-events-none");
+				if (document.getElementById("btn-field"))
+					document.getElementById("btn-field").remove();
+				aiChatContainer.classList.remove("hidden");
 			}
 		});
 
-		aiChatContainer.classList.remove("hidden");
 		data.topic ? console.log("Arguments chargés :", data) : "";
 	} catch (err) {
 		console.error("Erreur lors du chargement :", err);
