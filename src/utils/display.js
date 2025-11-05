@@ -1,8 +1,9 @@
 // utils/display.js
 
 import { createIcons, icons } from "lucide";
-import { sendArguments, updateAskBtnState } from "../main.js";
+import { saveAllData } from "../main.js";
 import { evaluation } from "./appState.js";
+import { saveArguments } from "./apiClient.js";
 
 // =========================
 // Function handleTopicInput (20% AI help)
@@ -50,7 +51,8 @@ export function handleTopicInput(topicValue) {
 		createIcons({ icons });
 	}
 
-	topicBtn.remove();
+	// Remove button if exists
+	if (topicBtn) topicBtn.remove();
 
 	// =========================
 	// Click on h2 to edit
@@ -100,8 +102,7 @@ export function handleTopicInput(topicValue) {
 
 				evaluation.topic = h2.textContent;
 				createIcons({ icons });
-				console.log(`Topic edited : ${evaluation.topic}`);
-				sendArguments();
+				saveAllData(); // Sauvegarde les données après modification
 			};
 		})();
 
@@ -202,7 +203,7 @@ export function displayValue(item, container, type) {
 			if (index > -1) arr[index].text = input.value;
 			console.log(arr);
 			item.text = input.value;
-			sendArguments();
+			saveAllData();
 		};
 
 		input.addEventListener("blur", finishEdit);
@@ -222,4 +223,22 @@ export function displayValue(item, container, type) {
 
 		updateAskBtnState();
 	});
+}
+
+export function updateAskBtnState() {
+	const askBtn = document.querySelector("#ask-btn");
+	if (!askBtn) return;
+
+	const hasProsCons =
+		evaluation.topic &&
+		Array.isArray(evaluation.pros) &&
+		Array.isArray(evaluation.cons) &&
+		evaluation.pros.length > 0 &&
+		evaluation.cons.length > 0;
+
+	if (hasProsCons) {
+		askBtn.classList.remove("opacity-50", "pointer-events-none");
+	} else {
+		askBtn.classList.add("opacity-50", "pointer-events-none");
+	}
 }

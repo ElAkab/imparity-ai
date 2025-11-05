@@ -9,7 +9,7 @@ export function getSessionId() {
 	return sessionId;
 }
 
-// Optionnel : reset de la session si tu veux recommencer
+// Reset the session by generating a new sessionId
 export function resetSession() {
 	const sessionId = crypto.randomUUID();
 	localStorage.setItem("sessionId", sessionId);
@@ -17,7 +17,7 @@ export function resetSession() {
 	return sessionId;
 }
 
-// Wrapper pour envoyer les données au backend avec le sessionId
+// Helper function to make POST requests with sessionId included
 export async function postWithSession(url, data) {
 	const sessionId = getSessionId();
 	const payload = { ...data, sessionId };
@@ -30,4 +30,11 @@ export async function postWithSession(url, data) {
 
 	console.log("Response status:", res.status);
 	return res.json();
+}
+
+// Clear session data from localStorage
+export function clearSessionData() {
+	localStorage.removeItem("sessionId");
+	localStorage.removeItem("sessions");
+	console.log("Session data cleared from localStorage.");
 }

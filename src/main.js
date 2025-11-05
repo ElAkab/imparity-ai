@@ -1,65 +1,168 @@
-// Icons initialization
+// =========================
+// Imports
+// =========================
 import { createIcons, icons } from "lucide";
-// Global variables for chat messages
-let chatMessages = [];
 import { evaluation } from "./utils/appState.js";
-
-// API client functions
 import {
-	loadArguments,
-	saveArguments,
-	clearArguments,
-} from "./utils/apiClient.js";
-import { postWithSession } from "./utils/session.js";
+	postWithSession,
+	getSessionId,
+	clearSessionData,
+} from "./utils/session.js";
 import {
 	loadAllSessions,
 	renderHistory,
 	loadSession,
 	saveSession,
 } from "./utils/history.js";
-import { displayValue, handleTopicInput } from "./utils/display.js";
+import {
+	displayValue,
+	handleTopicInput,
+	updateAskBtnState,
+} from "./utils/display.js";
 import {
 	formatText,
 	analyzeWithStream,
 	createAssistantBubble,
+	appendUserMessageToUI,
 } from "./utils/chat.js";
+import {
+	loadArguments,
+	saveArguments,
+	clearArguments,
+} from "./utils/apiClient.js";
 
 // =========================
-// Main Application Logic
+// Variables globales
 // =========================
+const SESSION_ID = getSessionId();
+let chatMessages = evaluation.messages || [];
 
-// Unique session ID for the current evaluation
-const SESSION_ID = "default"; // ou généré dynamiquement
+// =========================
+// Fonctions utilitaires
+// =========================
+function updateChatUI() {
+	const chatContainer = document.getElementById("ai-chat-container");
+	const userResponse = document.getElementById("user-response");
+	if (!chatContainer || !userResponse) return;
 
-await saveArguments(
-	evaluation.topic,
-	evaluation.pros.map((p) => p.text),
-	evaluation.cons.map((c) => c.text),
-	evaluation.followUp,
-	chatMessages,
-	SESSION_ID
-);
+	userResponse.innerHTML = "";
 
-// Save data to the server
-export async function sendArguments() {
+	if (chatMessages.length === 0) {
+		chatContainer.classList.add("hidden");
+		return;
+	}
+
+	chatContainer.classList.remove("hidden");
+
+	chatMessages.forEach((msg) => {
+		const div = document.createElement("div");
+		if (msg.role === "user") {
+			div.className =
+				"self-end bg-linear-to-r from-blue-900 via-black to-red-900 text-white p-3 rounded-xl mb-2 max-w-full break-words";
+			div.style.alignSelf = "flex-end";
+			div.textContent = msg.content;
+		} else if (msg.role === "assistant") {
+			div.className =
+				"relative p-3 rounded-xl border shadow-md bg-[radial-gradient(ellipse_at_top,_rgba(139,92,246,0.7)_0%,_rgba(99,21,244,0.65)_100%)] backdrop-blur-sm text-white drop-shadow-md mb-2 max-w-full break-words";
+			div.innerHTML = formatText(msg.content);
+		}
+		userResponse.appendChild(div);
+	});
+}
+
+async function saveAllData() {
 	const topic = evaluation.topic || "";
-	const pros = (evaluation.pros || []).map((item) => item.text);
-	const cons = (evaluation.cons || []).map((item) => item.text);
-	const followUp = (evaluation.followUp || []).map((item) => item.text);
-	const messages = chatMessages.map((msg) => ({
-		role: msg.role,
-		content: msg.content,
+	const pros = evaluation.pros.map((p) => p.text);
+	const cons = evaluation.cons.map((c) => c.text);
+	const followUp = evaluation.followUp.map((f) => f.text || f);
+	const messages = chatMessages.map((m) => ({
+		role: m.role,
+		content: m.content,
 	}));
 
 	try {
 		await saveArguments(topic, pros, cons, followUp, messages, SESSION_ID);
-		saveSession(topic, evaluation.pros, evaluation.cons, chatMessages);
+		saveSession(
+			topic,
+			evaluation.pros,
+			evaluation.cons,
+			evaluation.followUp,
+			chatMessages
+		);
 	} catch (err) {
 		console.error("Erreur lors de la sauvegarde :", err);
 	}
 }
 
-renderHistory();
+async function clear() {
+	await clearArguments();
+	clearSessionData();
+	chatMessages = [];
+	evaluation.topic = "";
+	evaluation.pros = [];
+	evaluation.cons = [];
+	evaluation.followUp = [];
+	evaluation.messages = [];
+
+	// Reset UI
+	document.getElementById("for-list").innerHTML = "";
+	document.getElementById("against-list").innerHTML = "";
+	document.getElementById("topic-field").innerHTML = `
+		<input type="text" id="topic-input" placeholder="Feed my son?" class="border-2 border-gray-600 hover:border-gray-400 p-1 px-3.5 rounded-l-lg transition"/>
+		<button id="topic-btn" class="bg-black text-white font-bold p-1 px-2.5 rounded-r-lg cursor-pointer hover:opacity-95 transition">That's it</button>
+	`;
+
+	document
+		.getElementById("for-against-field")
+		.classList.add("opacity-50", "pointer-events-none");
+	document
+		.getElementById("new-btn")
+		.classList.add("opacity-50", "pointer-events-none");
+
+	attachTopicBtnListener();
+}
+
+// =========================
+// Affichage initial
+// =========================
+async function displayArguments() {
+	try {
+		const data = await loadArguments();
+		evaluation.topic = data.topic || "";
+		evaluation.pros = (data.pros || []).map((text, index) => ({
+			id: Date.now() + index,
+			text,
+		}));
+		evaluation.cons = (data.cons || []).map((text, index) => ({
+			id: Date.now() + index,
+			text,
+		}));
+		evaluation.followUp = data.followUp || [];
+		chatMessages = (data.messages || []).filter(
+			(msg) => msg?.role && msg?.content
+		);
+		evaluation.messages = chatMessages;
+
+		if (evaluation.topic) handleTopicInput(evaluation.topic);
+		evaluation.pros.forEach((item) =>
+			displayValue(item, document.getElementById("for-list"), "pros")
+		);
+		evaluation.cons.forEach((item) =>
+			displayValue(item, document.getElementById("against-list"), "cons")
+		);
+		updateChatUI();
+		updateAskBtnState();
+	} catch (err) {
+		console.error("Erreur lors du chargement :", err);
+	}
+}
+
+// =========================
+// Initialisation
+// =========================
+await displayArguments();
+createIcons({ icons });
+renderHistory(renderArguments, renderMessages);
 
 // Menu button / menu
 let menuBtn = document.querySelector("#menu-btn");
@@ -98,73 +201,9 @@ const hammerIcon = document.querySelector("#ask-btn img");
 const aiChatContainer = document.getElementById("ai-chat-container");
 const userResponse = document.getElementById("user-response");
 
-// Load data from the server
-async function displayArguments() {
-	try {
-		const data = await loadArguments();
-		evaluation.topic = data.topic || "";
-		evaluation.pros = (data.pros || []).map((text, index) => ({
-			id: Date.now() + index,
-			text,
-		}));
-		evaluation.cons = (data.cons || []).map((text, index) => ({
-			id: Date.now() + index,
-			text,
-		}));
-		evaluation.followUp = data.followUp || [];
-		chatMessages = (data.messages || []).filter(
-			(msg) =>
-				msg && typeof msg.role === "string" && typeof msg.content === "string"
-		);
-		evaluation.messages = chatMessages;
-
-		// Display topic
-		if (evaluation.topic) {
-			handleTopicInput(evaluation.topic);
-			forAgainstField.classList.remove("opacity-50", "pointer-events-none");
-			newBtn.classList.remove("opacity-50", "pointer-events-none");
-		}
-
-		// Display pros
-		evaluation.pros.forEach((item) =>
-			displayValue(item, forListContainer, "pros")
-		);
-
-		// Display cons
-		evaluation.cons.forEach((item) =>
-			displayValue(item, againstListContainer, "cons")
-		);
-
-		// Display chat messages
-		chatMessages.forEach((msg) => {
-			if (msg.role === "user") {
-				const userMsg = document.createElement("div");
-				userMsg.className =
-					"self-end bg-linear-to-r from-blue-900 via-black to-red-900 text-center text-white p-3 rounded-xl mb-2 max-w-full break-words";
-				userMsg.style.alignSelf = "flex-end";
-				userMsg.textContent = msg.content;
-				userResponse.appendChild(userMsg);
-			} else if (msg.role === "assistant") {
-				const assistantMsg = document.createElement("div");
-				assistantMsg.className =
-					"relative p-12 rounded-xl border shadow-md bg-[radial-gradient(ellipse_at_top,_rgba(139,92,246,0.7)_0%,_rgba(99,21,244,0.65)_100%)] backdrop-blur-sm text-white drop-shadow-md mb-2 max-w-full break-words";
-				assistantMsg.innerHTML = formatText(msg.content);
-				userResponse.appendChild(assistantMsg);
-
-				topicField.classList.add("opacity-50", "pointer-events-none");
-				forAgainstField.classList.add("opacity-50", "pointer-events-none");
-				if (document.getElementById("btn-field"))
-					document.getElementById("btn-field").remove();
-				aiChatContainer.classList.remove("hidden");
-			}
-		});
-
-		data.topic ? console.log("Arguments chargés :", data) : "";
-	} catch (err) {
-		console.error("Erreur lors du chargement :", err);
-	}
-}
-displayArguments();
+attachTopicBtnListener();
+document.getElementById("new-btn")?.addEventListener("click", clear);
+document.getElementById("new-btn2")?.addEventListener("click", clear);
 
 // Initialize icons
 createIcons({ icons });
@@ -207,7 +246,7 @@ topicBtn.addEventListener("click", () => {
 	console.log(`Topic : ${evaluation.topic}`);
 
 	handleTopicInput(topicValue);
-	sendArguments();
+	saveAllData();
 });
 
 // =========================
@@ -237,7 +276,7 @@ forBtn.addEventListener("click", () => {
 		displayValue({ id, text: value }, forListContainer, "pros");
 		forInput.value = "";
 		console.log(evaluation.pros);
-		sendArguments();
+		saveAllData();
 	}
 });
 
@@ -252,51 +291,76 @@ againstBtn.addEventListener("click", () => {
 		displayValue({ id, text: value }, againstListContainer, "cons");
 		againstInput.value = "";
 		console.log(evaluation.cons);
-		sendArguments();
+		saveAllData();
 	}
 });
 
-// =========================
-// New Button
-// =========================
-newBtn.addEventListener("click", () => clean());
-newBtn2.addEventListener("click", () => clean());
+// =================================
+// Topic Input and Button
+// =================================
 
-// =========================
+topicBtn.addEventListener("click", () => {
+	const topicValue = topicInput.value.trim();
+	if (topicValue === "") return;
+
+	const forAgainstField = document.getElementById("for-against-field");
+	forAgainstField.classList.remove("opacity-50", "pointer-events-none");
+	newBtn.classList.remove("opacity-50", "pointer-events-none");
+
+	evaluation.topic = topicValue;
+
+	handleTopicInput(topicValue);
+	saveAllData();
+});
+
+topicInput.addEventListener("keydown", (e) => {
+	if (e.key === "Enter") {
+		e.preventDefault();
+		topicBtn.click();
+	}
+});
+
+function attachTopicBtnListener() {
+	if (!topicBtn || !topicInput) return;
+
+	topicBtn.addEventListener("click", () => {
+		const topicValue = topicInput.value.trim();
+		if (!topicValue) return;
+
+		document
+			.getElementById("for-against-field")
+			.classList.remove("opacity-50", "pointer-events-none");
+		document
+			.getElementById("new-btn")
+			.classList.remove("opacity-50", "pointer-events-none");
+
+		evaluation.topic = topicValue;
+		console.log(`Topic : ${evaluation.topic}`);
+
+		handleTopicInput(topicValue);
+		saveAllData();
+	});
+}
+
+// =================================
 // Ask Button
-// =========================
-askBtn.addEventListener("mouseover", async () => {
-	hammerIcon.classList.add("rotate-6");
-});
+// =================================
+askBtn?.addEventListener("click", () => {
+	saveAllData();
 
-askBtn.addEventListener("mouseout", async () => {
-	hammerIcon.classList.remove("rotate-6");
-});
-
-askBtn.addEventListener("click", async () => {
-	// Save current arguments
-	await sendArguments();
-
-	// Rebuild the evaluation object
-	evaluation.topic = evaluation.topic;
-	evaluation.pros = evaluation.pros;
-	evaluation.cons = evaluation.cons;
-	evaluation.messages = chatMessages;
-	evaluation.followUp = evaluation.followUp;
-
-	// Display AI chat container
-	aiChatContainer.classList.remove("hidden");
-
-	topicField.classList.add("opacity-50", "pointer-events-none");
-	forAgainstField.classList.add("opacity-50", "pointer-events-none");
-	hammerIcon.classList.add("rotate-90");
-	document
-		.getElementById("btn-field")
-		.classList.add("opacity-50", "pointer-events-none");
+	const btnField = document.querySelector("#btn-field");
+	btnField.classList.add("opacity-50", "pointer-events-none");
+	hammerIcon.classList.add("rotate-90", "rotate-animation");
 
 	setTimeout(async () => {
-		document.getElementById("btn-field").remove();
-		// Appeler uniquement analyzeWithStream
+		btnField.classList.remove("opacity-50", "pointer-events-none");
+		btnField.classList.add("hidden");
+		document.getElementById("ai-chat-container").classList.remove("hidden");
+		topicInput.classList.add("opacity-50", "pointer-events-none");
+		document
+			.getElementById("for-against-field")
+			.classList.add("opacity-50", "pointer-events-none");
+
 		await analyzeWithStream(
 			{
 				topic: evaluation.topic,
@@ -307,69 +371,31 @@ askBtn.addEventListener("click", async () => {
 			},
 			createAssistantBubble()
 		);
-	}, 500);
+	}, 300);
+
+	updateChatUI();
+	updateAskBtnState();
 });
 
-// Function to update ask button state
-export function updateAskBtnState() {
-	let askBtn = document.querySelector("#ask-btn");
-	if (
-		evaluation.topic &&
-		evaluation.pros.length > 0 &&
-		evaluation.cons.length > 0
-	) {
-		askBtn.classList.remove("opacity-50", "pointer-events-none");
-	} else {
-		askBtn.classList.add("opacity-50", "pointer-events-none");
-	}
-}
+// Update askBtn state when a session is loaded
+window.addEventListener("sessionLoaded", () => updateAskBtnState());
 
-// Fonction utilitaire pour gérer la touche Entrée
-function handleEnterKey(input, button, event) {
-	if (event.key === "Enter") {
-		event.preventDefault();
-		button.click();
-	}
-}
-
-// Add keydown listeners for Enter key
-topicInput.addEventListener("keydown", (e) =>
-	handleEnterKey(topicInput, topicBtn, e)
-);
-forInput.addEventListener("keydown", (e) =>
-	handleEnterKey(forInput, forBtn, e)
-);
-againstInput.addEventListener("keydown", (e) =>
-	handleEnterKey(againstInput, againstBtn, e)
-);
-
-async function clean() {
-	// Reset object evaluation
-	await clearArguments();
-	updateAskBtnState();
-
-	// clean UI
+// =========================
+// Render helpers for history.js
+// =========================
+function renderArguments(pros, cons) {
+	const forListContainer = document.getElementById("for-list");
+	const againstListContainer = document.getElementById("against-list");
 	forListContainer.innerHTML = "";
 	againstListContainer.innerHTML = "";
-
-	// Reset topic field
-	topicField.innerHTML = `
-		<input
-			class="border-2 border-gray-600 hover:border-gray-400 p-1 px-3.5 rounded-l-lg transition"
-			type="text"
-			id="topic-input"
-			placeholder="Feed my son?"
-		/>
-		<button
-			id="topic-btn"
-			class="bg-black text-white font-bold p-1 px-2.5 rounded-r-lg cursor-pointer hover:opacity-95 transition"
-			type="submit"
-		>
-			That's it
-		</button>
-		`;
-
-	// disable for/against and new button
-	forAgainstField.classList.add("opacity-50", "pointer-events-none");
-	newBtn.classList.add("opacity-50", "pointer-events-none");
+	pros.forEach((p) => displayValue(p, forListContainer, "pros"));
+	cons.forEach((c) => displayValue(c, againstListContainer, "cons"));
 }
+
+function renderMessages(messages) {
+	chatMessages = messages || [];
+	evaluation.messages = chatMessages;
+	updateChatUI();
+}
+
+export { saveAllData };

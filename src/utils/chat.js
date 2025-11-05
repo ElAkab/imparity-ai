@@ -1,7 +1,7 @@
 // =========================
 // Fonction to analyze with streaming (100% AI help, shame on me)
 // =========================
-import { sendArguments } from "../main";
+import { saveAllData } from "../main";
 import { evaluation } from "./appState.js";
 let isStreaming = false;
 
@@ -72,7 +72,7 @@ export async function analyzeWithStream(
 						}
 						if (aiSendBtn) aiSendBtn.disabled = false;
 
-						sendArguments();
+						saveAllData();
 						return;
 					}
 
