@@ -22,7 +22,7 @@ export async function saveArguments(
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
 		body: JSON.stringify({
-			sessionId, // <- obligatoire
+			sessionId,
 			topic,
 			pros,
 			cons,

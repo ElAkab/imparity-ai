@@ -2,9 +2,10 @@
 // Imports
 // =========================
 import { createIcons, icons } from "lucide";
+import { newHTML } from "./utils/clear-html.js";
 import { evaluation } from "./utils/appState.js";
 import {
-	postWithSession,
+	resetSession,
 	getSessionId,
 	clearSessionData,
 } from "./utils/session.js";
@@ -32,29 +33,30 @@ import {
 } from "./utils/apiClient.js";
 
 // =========================
-// Variables globales
+// Global variables
 // =========================
+const sessions = loadAllSessions();
 const SESSION_ID = getSessionId();
-let chatMessages = evaluation.messages || [];
+// console.log(`All sessions: ${JSON.stringify(sessions, null, 2)}`);
 
 // =========================
-// Fonctions utilitaires
+// Utilities
 // =========================
-function updateChatUI() {
+export function updateChatUI() {
 	const chatContainer = document.getElementById("ai-chat-container");
 	const userResponse = document.getElementById("user-response");
 	if (!chatContainer || !userResponse) return;
 
 	userResponse.innerHTML = "";
 
-	if (chatMessages.length === 0) {
+	if (!evaluation.messages || evaluation.messages.length === 0) {
 		chatContainer.classList.add("hidden");
 		return;
 	}
 
 	chatContainer.classList.remove("hidden");
 
-	chatMessages.forEach((msg) => {
+	evaluation.messages.forEach((msg) => {
 		const div = document.createElement("div");
 		if (msg.role === "user") {
 			div.className =
@@ -72,13 +74,18 @@ function updateChatUI() {
 
 async function saveAllData() {
 	const topic = evaluation.topic || "";
-	const pros = evaluation.pros.map((p) => p.text);
-	const cons = evaluation.cons.map((c) => c.text);
-	const followUp = evaluation.followUp.map((f) => f.text || f);
-	const messages = chatMessages.map((m) => ({
-		role: m.role,
-		content: m.content,
-	}));
+	const pros = Array.isArray(evaluation.pros)
+		? evaluation.pros.map((p) => p.text)
+		: [];
+	const cons = Array.isArray(evaluation.cons)
+		? evaluation.cons.map((c) => c.text)
+		: [];
+	const followUp = Array.isArray(evaluation.followUp)
+		? evaluation.followUp.map((f) => f.text || f)
+		: [];
+	const messages = Array.isArray(evaluation.messages)
+		? evaluation.messages
+		: [];
 
 	try {
 		await saveArguments(topic, pros, cons, followUp, messages, SESSION_ID);
@@ -87,245 +94,76 @@ async function saveAllData() {
 			evaluation.pros,
 			evaluation.cons,
 			evaluation.followUp,
-			chatMessages
+			messages
 		);
 	} catch (err) {
-		console.error("Erreur lors de la sauvegarde :", err);
+		console.error("Error during backup :", err);
 	}
 }
 
+let askBtn = document.getElementById("ask-btn");
+
 async function clear() {
 	await clearArguments();
-	clearSessionData();
-	chatMessages = [];
+	resetSession(true);
+
+	evaluation.topic = "";
+	evaluation.pros = evaluation.pros || [];
+	evaluation.cons = evaluation.cons || [];
+	evaluation.followUp = evaluation.followUp || [];
+	evaluation.messages = evaluation.messages || [];
+
 	evaluation.topic = "";
 	evaluation.pros = [];
 	evaluation.cons = [];
 	evaluation.followUp = [];
 	evaluation.messages = [];
 
-	// Reset UI
-	document.getElementById("for-list").innerHTML = "";
-	document.getElementById("against-list").innerHTML = "";
+	newHTML();
 	document.getElementById("topic-field").innerHTML = `
-		<input type="text" id="topic-input" placeholder="Feed my son?" class="border-2 border-gray-600 hover:border-gray-400 p-1 px-3.5 rounded-l-lg transition"/>
-		<button id="topic-btn" class="bg-black text-white font-bold p-1 px-2.5 rounded-r-lg cursor-pointer hover:opacity-95 transition">That's it</button>
+		<input type="text" id="topic-input" placeholder="Feed my son?" class="border-2 border-t-blue-900/40 border-black hover:border-black focus:border-2 focus:border-black p-1 px-3.5 rounded-l-lg rounded-r-none transition"/>
+		<button id="topic-btn" class="bg-linear-to-t from-blue-950 via-black to-red-950 text-white font-bold p-1 px-2.5 rounded-r-lg cursor-pointer hover:text-violet-100 transition">That's it</button>
 	`;
 
-	document
-		.getElementById("for-against-field")
-		.classList.add("opacity-50", "pointer-events-none");
-	document
-		.getElementById("new-btn")
-		.classList.add("opacity-50", "pointer-events-none");
-
 	attachTopicBtnListener();
+	updateChatUI();
+
+	if (!modalMenu.classList.contains("-translate-x-6/6"))
+		modalMenu.classList.add("-translate-x-6/6");
 }
 
-// =========================
-// Affichage initial
-// =========================
-async function displayArguments() {
-	try {
-		const data = await loadArguments();
-		evaluation.topic = data.topic || "";
-		evaluation.pros = (data.pros || []).map((text, index) => ({
-			id: Date.now() + index,
-			text,
-		}));
-		evaluation.cons = (data.cons || []).map((text, index) => ({
-			id: Date.now() + index,
-			text,
-		}));
-		evaluation.followUp = data.followUp || [];
-		chatMessages = (data.messages || []).filter(
-			(msg) => msg?.role && msg?.content
-		);
-		evaluation.messages = chatMessages;
-
-		if (evaluation.topic) handleTopicInput(evaluation.topic);
-		evaluation.pros.forEach((item) =>
-			displayValue(item, document.getElementById("for-list"), "pros")
-		);
-		evaluation.cons.forEach((item) =>
-			displayValue(item, document.getElementById("against-list"), "cons")
-		);
-		updateChatUI();
-		updateAskBtnState();
-	} catch (err) {
-		console.error("Erreur lors du chargement :", err);
-	}
-}
-
-// =========================
-// Initialisation
-// =========================
-await displayArguments();
 createIcons({ icons });
+
 renderHistory(renderArguments, renderMessages);
 
-// Menu button / menu
-let menuBtn = document.querySelector("#menu-btn");
-let modalMenu = document.querySelector("#modale-menu");
+let chatMessages = [];
 
 // Topic
 let topicField = document.querySelector("#topic-field");
 let topicInput = document.querySelector("#topic-input");
-let topicBtn = document.querySelector("#topic-field button");
-
-// For/Against field
-const forAgainstField = document.getElementById("for-against-field");
-
-// For queries
-const forField = document.getElementById("for-section");
-const toAgainstBtn = document.querySelector("#against-btn");
-const forInput = document.querySelector("#for-input");
-const forBtn = document.querySelector("#add-for-btn");
-
-// Against queries
-const againstField = document.getElementById("against-section");
-const toForBtn = document.querySelector("#for-btn");
-const againstInput = document.querySelector("#against-input");
-const againstBtn = document.querySelector("#add-against-btn");
 
 // Tables
 const forListContainer = document.querySelector("#for-list");
 const againstListContainer = document.querySelector("#against-list");
 
-// Buttons
-let newBtn = document.querySelector("#new-btn");
-let newBtn2 = document.querySelector("#new-btn2");
-const askBtn = document.querySelector("#ask-btn");
 const hammerIcon = document.querySelector("#ask-btn img");
 
-const aiChatContainer = document.getElementById("ai-chat-container");
-const userResponse = document.getElementById("user-response");
-
-attachTopicBtnListener();
-document.getElementById("new-btn")?.addEventListener("click", clear);
-document.getElementById("new-btn2")?.addEventListener("click", clear);
-
-// Initialize icons
-createIcons({ icons });
-
 // =========================
-// Menu Button Click
+// Listeners for topic
 // =========================
-const imgElement = document.querySelector("#logo-ai");
-const closeMenuBtn = document.querySelector("#close-modal");
-
-menuBtn.addEventListener("click", () => {
-	// Focus input of menu
-	modalMenu.querySelector("input").focus();
-
-	// Show the modal
-	modalMenu.classList.remove("-translate-x-6/6");
-
-	// Hide the logo
-	imgElement.classList.add("invisible");
-});
-
-// Close modal on click of close button
-closeMenuBtn.addEventListener("click", () => {
-	modalMenu.classList.add("-translate-x-6/6");
-	// Show the logo again
-	imgElement.classList.remove("invisible");
-});
-
-// =========================
-// Topic Button Click
-// =========================
-topicBtn.addEventListener("click", () => {
-	const topicValue = topicInput.value.trim();
-	if (topicValue === "") return;
-
-	forAgainstField.classList.remove("opacity-50", "pointer-events-none");
-	newBtn.classList.remove("opacity-50", "pointer-events-none");
-
-	evaluation.topic = topicValue;
-	console.log(`Topic : ${evaluation.topic}`);
-
-	handleTopicInput(topicValue);
-	saveAllData();
-});
-
-// =========================
-// Against Button (1)
-// =========================
-toAgainstBtn.addEventListener("click", () => {
-	forField.classList.replace("flex", "hidden");
-	againstField.classList.replace("hidden", "flex");
-});
-
-// =========================
-// For Button (2)
-// =========================
-toForBtn.addEventListener("click", () => {
-	againstField.classList.replace("flex", "hidden");
-	forField.classList.replace("hidden", "flex");
-});
-
-// =========================
-// Add for Button
-// =========================
-forBtn.addEventListener("click", () => {
-	const value = forInput.value.trim();
-	if (value !== "") {
-		const id = Date.now() + Math.random();
-		evaluation.pros.push({ id, text: value });
-		displayValue({ id, text: value }, forListContainer, "pros");
-		forInput.value = "";
-		console.log(evaluation.pros);
-		saveAllData();
-	}
-});
-
-// =========================
-// Add against Button
-// =========================
-againstBtn.addEventListener("click", () => {
-	const value = againstInput.value.trim();
-	if (value !== "") {
-		const id = Date.now() + Math.random();
-		evaluation.cons.push({ id, text: value });
-		displayValue({ id, text: value }, againstListContainer, "cons");
-		againstInput.value = "";
-		console.log(evaluation.cons);
-		saveAllData();
-	}
-});
-
-// =================================
-// Topic Input and Button
-// =================================
-
-topicBtn.addEventListener("click", () => {
-	const topicValue = topicInput.value.trim();
-	if (topicValue === "") return;
-
-	const forAgainstField = document.getElementById("for-against-field");
-	forAgainstField.classList.remove("opacity-50", "pointer-events-none");
-	newBtn.classList.remove("opacity-50", "pointer-events-none");
-
-	evaluation.topic = topicValue;
-
-	handleTopicInput(topicValue);
-	saveAllData();
-});
-
-topicInput.addEventListener("keydown", (e) => {
-	if (e.key === "Enter") {
-		e.preventDefault();
-		topicBtn.click();
-	}
-});
-
 function attachTopicBtnListener() {
-	if (!topicBtn || !topicInput) return;
+	const topicInput = document.getElementById("topic-input");
+	const topicBtn = document
+		.getElementById("topic-field")
+		?.querySelector("button");
+	if (!topicInput || !topicBtn) return;
 
 	topicBtn.addEventListener("click", () => {
 		const topicValue = topicInput.value.trim();
 		if (!topicValue) return;
+
+		evaluation.topic = topicValue;
+		handleTopicInput(topicValue);
 
 		document
 			.getElementById("for-against-field")
@@ -334,18 +172,148 @@ function attachTopicBtnListener() {
 			.getElementById("new-btn")
 			.classList.remove("opacity-50", "pointer-events-none");
 
-		evaluation.topic = topicValue;
-		console.log(`Topic : ${evaluation.topic}`);
-
-		handleTopicInput(topicValue);
 		saveAllData();
+		updateAskBtnState();
+	});
+
+	topicInput.addEventListener("keydown", (e) => {
+		if (e.key === "Enter") {
+			e.preventDefault();
+			topicBtn.click();
+		}
 	});
 }
 
-// =================================
+attachTopicBtnListener();
+
+// =========================
+// History helpers
+// =========================
+function renderArguments(pros, cons) {
+	forListContainer = document.getElementById("for-list");
+	againstListContainer = document.getElementById("against-list");
+	forListContainer.innerHTML = "";
+	againstListContainer.innerHTML = "";
+
+	pros.forEach((p) => displayValue(p, forListContainer, "pros"));
+	cons.forEach((c) => displayValue(c, againstListContainer, "cons"));
+}
+
+function renderMessages(messages) {
+	evaluation.messages = messages || [];
+	updateChatUI();
+}
+
+// | Menu button / menu | init
+let menuBtn = document.querySelector("#menu-btn");
+let modalMenu = document.querySelector("#modale-menu");
+
+// | Logo / close menu button | init
+const imgElement = document.querySelector("#logo-ai");
+const closeMenuBtn = document.querySelector("#close-modal");
+
+// =========================
+// Menu Button Click
+// =========================
+menuBtn.addEventListener("click", (e) => {
+	e.stopPropagation();
+
+	modalMenu.querySelector("input").focus();
+	modalMenu.classList.remove("-translate-x-6/6");
+	imgElement.classList.add("invisible");
+});
+
+// (Close modal after a click anywhere)
+document.addEventListener("click", (e) => {
+	if (!modalMenu.contains(e.target)) {
+		modalMenu.classList.add("-translate-x-6/6");
+		imgElement.classList.remove("invisible");
+	}
+});
+
+// Close modal on click of close button
+closeMenuBtn.addEventListener("click", () => {
+	modalMenu.classList.add("-translate-x-6/6");
+	imgElement.classList.remove("invisible");
+});
+
+document.getElementById("new-chat-btn")?.addEventListener("click", () => {
+	const allSessions = loadAllSessions();
+	const sessionId = getSessionId();
+	const currentSession = allSessions[sessionId];
+	if (currentSession.topic === "") return;
+
+	evaluation.topic = "";
+	evaluation.pros = [];
+	evaluation.cons = [];
+	evaluation.followUp = [];
+	evaluation.messages = [];
+
+	if (topicField.classList.contains("opacity-50", "pointer-events-none"))
+		topicField.classList.remove("opacity-50", "pointer-events-none");
+
+	clear();
+
+	import("./utils/history.js").then((mod) => mod.renderHistory());
+
+	console.log("New session created : ", sessionId);
+});
+
+document.getElementById("clear-btn")?.addEventListener("click", () => {
+	if (!confirm("Are you sure you want to delete all session?")) return;
+
+	clearSessionData(); // Clear all localStorage
+	clear(); // Clear évaluation + UI
+	renderHistory();
+
+	imgElement.classList.remove("invisible");
+});
+
+// =========================
+// Add For / Against
+// =========================
+document.getElementById("add-for-btn")?.addEventListener("click", () => {
+	const input = document.getElementById("for-input");
+	if (!input) return;
+	const value = input.value.trim();
+	if (!value) return;
+
+	const id = Date.now() + Math.random();
+	evaluation.pros.push({ id, text: value });
+	displayValue(
+		{ id, text: value },
+		document.getElementById("for-list"),
+		"pros"
+	);
+
+	input.value = "";
+	input.focus();
+	saveAllData();
+});
+
+document.getElementById("add-against-btn")?.addEventListener("click", () => {
+	const input = document.getElementById("against-input");
+	if (!input) return;
+	const value = input.value.trim();
+	if (!value) return;
+
+	const id = Date.now() + Math.random();
+	evaluation.cons.push({ id, text: value });
+	displayValue(
+		{ id, text: value },
+		document.getElementById("against-list"),
+		"cons"
+	);
+
+	input.value = "";
+	input.focus();
+	saveAllData();
+});
+
+// =========================
 // Ask Button
-// =================================
-askBtn?.addEventListener("click", () => {
+// =========================
+askBtn.addEventListener("click", async () => {
 	saveAllData();
 
 	const btnField = document.querySelector("#btn-field");
@@ -353,6 +321,7 @@ askBtn?.addEventListener("click", () => {
 	hammerIcon.classList.add("rotate-90", "rotate-animation");
 
 	setTimeout(async () => {
+		topicField.classList.add("opacity-50", "pointer-events-none");
 		btnField.classList.remove("opacity-50", "pointer-events-none");
 		btnField.classList.add("hidden");
 		document.getElementById("ai-chat-container").classList.remove("hidden");
@@ -373,29 +342,13 @@ askBtn?.addEventListener("click", () => {
 		);
 	}, 300);
 
-	updateChatUI();
 	updateAskBtnState();
 });
 
-// Update askBtn state when a session is loaded
-window.addEventListener("sessionLoaded", () => updateAskBtnState());
-
 // =========================
-// Render helpers for history.js
+// New / Clear
 // =========================
-function renderArguments(pros, cons) {
-	const forListContainer = document.getElementById("for-list");
-	const againstListContainer = document.getElementById("against-list");
-	forListContainer.innerHTML = "";
-	againstListContainer.innerHTML = "";
-	pros.forEach((p) => displayValue(p, forListContainer, "pros"));
-	cons.forEach((c) => displayValue(c, againstListContainer, "cons"));
-}
-
-function renderMessages(messages) {
-	chatMessages = messages || [];
-	evaluation.messages = chatMessages;
-	updateChatUI();
-}
+document.getElementById("new-btn")?.addEventListener("click", clear);
+document.getElementById("new-btn2")?.addEventListener("click", clear);
 
 export { saveAllData };

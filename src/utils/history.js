@@ -1,14 +1,22 @@
 // utils/history.js
+
 import { createIcons, icons } from "lucide";
+import { newHTML } from "./clear-html.js";
 import { getSessionId } from "./session.js";
-import { displayValue, handleTopicInput } from "./display.js";
 import {
+	displayValue,
+	handleTopicInput,
+	updateAskBtnState,
+} from "./display.js";
+import {
+	getActiveSession,
 	createAssistantBubble,
 	formatText,
 	appendUserMessageToUI,
 } from "./chat.js";
-import { evaluation } from "./appState.js"; // <- on mutera cet objet
+import { evaluation } from "./appState.js"; // <- we will mutate this object
 import { loadArguments } from "./apiClient.js";
+import { saveAllData, updateChatUI } from "../main.js";
 
 // ========================
 // Load all sessions from localStorage
@@ -17,6 +25,9 @@ export function loadAllSessions() {
 	return JSON.parse(localStorage.getItem("sessions") || "{}");
 }
 
+// ========================
+// Save current session to localStorage
+// ========================
 export function saveSession(topic, pros, cons, followUp, messages) {
 	const sessions = loadAllSessions();
 	const sessionId = getSessionId();
@@ -37,48 +48,157 @@ export function saveSession(topic, pros, cons, followUp, messages) {
 export function renderHistory() {
 	const historyList = document.getElementById("history-list");
 	if (!historyList) return;
-	if (!loadAllSessions()) return;
+
+	const sessions = loadAllSessions();
+	if (!sessions) return;
 
 	historyList.innerHTML = "";
-	const sessions = loadAllSessions();
 
 	Object.entries(sessions).forEach(([id, session]) => {
+		// Principal element
 		const li = document.createElement("li");
 		li.className =
-			"bg-indigo-400/60 border w-full rounded-3xl cursor-pointer transition p-2.5 px-8 flex justify-between items-center m-1";
+			"bg-indigo-400/60 border w-full rounded-3xl cursor-pointer transition p-2.5 px-8 flex justify-between items-center m-1 relative";
 
+		// Text of the session
 		const textSpan = document.createElement("span");
-		textSpan.textContent = session.topic || "Session sans titre";
+		textSpan.textContent = session.topic || "Empty session";
 		textSpan.className =
 			"flex-1 whitespace-nowrap overflow-hidden overflow-ellipsis";
 
+		// Menu icon
 		const iconSpan = document.createElement("span");
 		iconSpan.innerHTML = '<i data-lucide="ellipsis-vertical"></i>';
 		iconSpan.className = "opacity-0 transition-opacity ml-2";
 
-		iconSpan.addEventListener("click", (e) => {
+		// drop-down menu (hidden by default)
+		const dropdown = document.createElement("div");
+		dropdown.className =
+			"history-dropdown absolute right-2 top-10 bg-indigo-400 border text-white rounded-lg shadow-md w-40 hidden flex-col z-10 transition-transform transform scale-95 opacity-0";
+		dropdown.innerHTML = `
+			<button class="dropdown-rename px-4 py-2 text-left hover:bg-indigo-500 w-full cursor-pointer">Rename</button>
+			<button class="dropdown-delete px-4 py-2 text-left text-red-600 hover:bg-indigo-500 w-full cursor-pointer">Delete</button>
+		`;
+
+		// Load titles safely
+		let titlesRaw = localStorage.getItem("titleSessions") || "{}";
+		let titles;
+		try {
+			titles = JSON.parse(titlesRaw);
+		} catch (err) {
+			titles = {};
+		}
+
+		// Apply custom title if existing
+		if (titles[id]) textSpan.textContent = titles[id];
+
+		// Renaming management
+		const renameBtn = dropdown.querySelector(".dropdown-rename");
+		renameBtn.addEventListener("click", (e) => {
 			e.stopPropagation();
-			alert("Fonctionnalité à venir : gestion de la session");
+			const newName = prompt("Enter new session name:", textSpan.textContent);
+			if (newName) {
+				textSpan.textContent = newName;
+				session.topic = newName;
+
+				// Update titleSessions
+				titles[id] = newName;
+				localStorage.setItem("titleSessions", JSON.stringify(titles));
+				// localStorage.setItem("sessions", JSON.stringify(sessions));
+			}
+			closeDropdown(dropdown);
 		});
 
+		// Deletion management
+		const deleteBtn = dropdown.querySelector(".dropdown-delete");
+		deleteBtn.addEventListener("click", (e) => {
+			e.stopPropagation();
+
+			const sessions = loadAllSessions();
+			const titlesRaw = localStorage.getItem("titleSessions") || "{}";
+			const titles = JSON.parse(titlesRaw);
+
+			delete sessions[id];
+			delete titles[id];
+
+			localStorage.setItem("sessions", JSON.stringify(sessions));
+			localStorage.setItem("titleSessions", JSON.stringify(titles));
+
+			// If the deleted session was active : reset
+			if (id === localStorage.getItem("sessionId")) {
+				localStorage.removeItem("sessionId");
+				Object.keys(evaluation).forEach((key) => delete evaluation[key]);
+			}
+
+			renderHistory();
+			// closeDropdown(dropdown);
+		});
+
+		// Function to open/close the menu
+		iconSpan.addEventListener("click", (e) => {
+			e.stopPropagation();
+			const isVisible = !dropdown.classList.contains("hidden");
+
+			// Close all other menus
+			document.querySelectorAll(".history-dropdown").forEach((menu) => {
+				if (menu !== dropdown) closeDropdown(menu);
+			});
+
+			if (!isVisible) openDropdown(dropdown);
+		});
+
+		// Icon appears on hover
 		li.addEventListener("mouseover", () => {
 			iconSpan.classList.remove("opacity-0");
 			iconSpan.classList.add("opacity-100");
 		});
-
 		li.addEventListener("mouseout", () => {
 			iconSpan.classList.remove("opacity-100");
 			iconSpan.classList.add("opacity-0");
 		});
 
-		li.appendChild(textSpan);
-		li.appendChild(iconSpan);
+		// Session loads when the 'li' is clicked (excluding the icon).
 		li.addEventListener("click", () => loadSession(id));
 
+		// Adding elements
+		li.appendChild(textSpan);
+		li.appendChild(iconSpan);
+		li.appendChild(dropdown);
 		historyList.appendChild(li);
+
+		// const currentId = localStorage.getItem("sessionId");
+
+		const { sessions, sessionId } = getActiveSession();
+
+		if (id === sessionId) {
+			li.classList.add("border-4", "ring-indigo-600");
+		}
 	});
 
 	createIcons({ icons });
+
+	// Global event to close menus
+	document.addEventListener("click", (e) => {
+		document.querySelectorAll(".history-dropdown").forEach((menu) => {
+			if (!menu.contains(e.target)) closeDropdown(menu);
+		});
+	});
+}
+
+// Opens a dropdown menu with animation
+function openDropdown(dropdown) {
+	dropdown.classList.remove("hidden");
+	requestAnimationFrame(() => {
+		dropdown.classList.remove("scale-95", "opacity-0");
+		dropdown.classList.add("scale-100", "opacity-100");
+	});
+}
+
+// Close a dropdown menu with animation
+function closeDropdown(dropdown) {
+	dropdown.classList.remove("scale-100", "opacity-100");
+	dropdown.classList.add("scale-95", "opacity-0");
+	setTimeout(() => dropdown.classList.add("hidden"), 150);
 }
 
 export function loadSession(sessionId) {
@@ -89,11 +209,18 @@ export function loadSession(sessionId) {
 	// ======================
 	// Setup UI Elements
 	// ======================
+	const topicField = document.querySelector("#topic-field");
 	const forAgainstField = document.querySelector("#for-against-field");
 	const newBtn = document.querySelector("#new-btn");
 	const chatContainer = document.querySelector("#ai-chat-container");
 	const forListContainer = document.getElementById("for-list");
 	const againstListContainer = document.getElementById("against-list");
+
+	const h2 = topicField?.querySelector("h2");
+	if (h2) {
+		h2.innerHTML = `${session.topic}<div class="h-full w-0.5 bg-white mx-2"></div><i data-lucide="pencil" class="-mr-2"></i>`;
+		createIcons({ icons });
+	}
 
 	// Enable fields
 	forAgainstField?.classList.remove("opacity-50", "pointer-events-none");
@@ -104,17 +231,32 @@ export function loadSession(sessionId) {
 	if (againstListContainer) againstListContainer.innerHTML = "";
 
 	// ======================
-	// Update evaluation object
+	// Build a fresh evaluation object
 	// ======================
-	evaluation.topic = session.topic || "";
-	evaluation.pros = (session.pros || []).map((p) =>
-		typeof p === "string" ? { id: Date.now() + Math.random(), text: p } : p
-	);
-	evaluation.cons = (session.cons || []).map((c) =>
-		typeof c === "string" ? { id: Date.now() + Math.random(), text: c } : c
-	);
-	evaluation.messages = session.messages || [];
-	evaluation.followUp = session.followUp || [];
+	const newEvaluation = {
+		topic: session.topic || "",
+		pros: (session.pros || []).map((p) =>
+			typeof p === "string" ? { id: Date.now() + Math.random(), text: p } : p
+		),
+		cons: (session.cons || []).map((c) =>
+			typeof c === "string" ? { id: Date.now() + Math.random(), text: c } : c
+		),
+		messages: (session.messages || []).map((m) => ({
+			role: m.role || m.sender || "assistant",
+			content: m.content || m.text || "",
+		})),
+		followUp: session.followUp || [],
+	};
+
+	// Muter l'objet existant au lieu de réassigner
+	Object.keys(evaluation).forEach((key) => delete evaluation[key]);
+	Object.assign(evaluation, newEvaluation);
+
+	updateAskBtnState();
+
+	// Save to localStorage
+	localStorage.setItem("sessionId", sessionId);
+	localStorage.setItem("evaluation", JSON.stringify(evaluation));
 
 	// ======================
 	// Update DOM lists
@@ -127,62 +269,71 @@ export function loadSession(sessionId) {
 	);
 
 	// ======================
-	// Display chat if messages exist
+	// Display chat messages
 	// ======================
-	if (evaluation.messages.length > 0) {
+	const userResponse = document.getElementById("user-response");
+	if (!userResponse) return;
+
+	userResponse.innerHTML = ""; // clear chat before adding new messages
+
+	if (evaluation.messages.some((m) => m.content.trim())) {
 		chatContainer?.classList.remove("hidden");
+		document.querySelector("#btn-field")?.classList.add("hidden");
+		topicField?.classList.add("opacity-50", "pointer-events-none");
+		forAgainstField?.classList.add("opacity-50", "pointer-events-none");
 
 		evaluation.messages.forEach((msg) => {
-			const role = msg.sender || msg.role; // compatibilité ancienne session
-			if (role === "user") {
-				appendUserMessageToUI(msg.text);
-			} else if (role === "assistant") {
-				const bubble = createAssistantBubble(); // crée une bulle unique
-				const msgDiv = document.createElement("div");
-				msgDiv.className =
-					"bg-linear-to-r from-green-900 via-black to-purple-900 text-white p-3 rounded-xl mb-2 max-w-full break-words";
-				msgDiv.style.alignSelf = "flex-start";
-				msgDiv.innerHTML = formatText(msg.text);
-				bubble.appendChild(msgDiv);
+			if (msg.role === "user") {
+				appendUserMessageToUI(msg.content);
+			} else if (msg.role === "assistant") {
+				const wrapper = document.createElement("div");
+				wrapper.className = "mb-2";
+
+				const bubble = document.createElement("div");
+				bubble.className =
+					"relative p-12 rounded-xl border shadow-md bg-[radial-gradient(ellipse_at_top,_rgba(139,92,246,0.7)_0%,_rgba(99,21,244,0.65)_100%)] backdrop-blur-sm text-white drop-shadow-md";
+				bubble.innerHTML = formatText(msg.content);
+
+				wrapper.appendChild(bubble);
+				userResponse.appendChild(wrapper);
 			}
 		});
 	} else {
-		chatContainer?.classList.add("hidden");
+		chatContainer.classList.add("hidden");
+		topicField?.classList.remove("opacity-50", "pointer-events-none");
+		forAgainstField?.classList.remove("opacity-50", "pointer-events-none");
+		document.querySelector("#btn-field")?.classList.remove("hidden");
+		updateAskBtnState();
 	}
 
 	// ======================
-	// Apply topic input and hide modal
+	// Handle topic input and modal
 	// ======================
 	handleTopicInput(session.topic);
 	document.getElementById("modale-menu")?.classList.add("-translate-x-6/6");
 	document.querySelector("#logo-ai")?.classList.remove("invisible");
 
-	// Notify main.js
+	// Dispatch event to notify session loaded
 	window.dispatchEvent(new Event("sessionLoaded"));
 }
 
-attachTopicListeners();
 function attachTopicListeners() {
 	const topicInput = document.getElementById("topic-input");
 	const topicBtn = document.getElementById("topic-btn");
-
 	if (!topicInput || !topicBtn) return;
 
-	topicBtn.addEventListener("click", async () => {
+	topicBtn.addEventListener("click", () => {
 		const topicValue = topicInput.value.trim();
 		if (!topicValue) return;
-
 		evaluation.topic = topicValue;
 		handleTopicInput(topicValue);
-
 		document
 			.getElementById("for-against-field")
 			.classList.remove("opacity-50", "pointer-events-none");
 		document
 			.getElementById("new-btn")
 			?.classList.remove("opacity-50", "pointer-events-none");
-
-		await saveAllData();
+		saveAllData();
 		updateAskBtnState();
 	});
 
@@ -193,3 +344,7 @@ function attachTopicListeners() {
 		}
 	});
 }
+
+// After replacement of the DOM :
+newHTML();
+attachTopicListeners();

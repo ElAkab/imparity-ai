@@ -1,4 +1,4 @@
-// backend is 75% made by AI. Reviewed and corrected by human, me 😅.
+// backend is 75% made by AI. Reviewed and corrected by human, -> me <- 😅.
 
 import express from "express";
 import cors from "cors";
@@ -38,7 +38,6 @@ app.post("/api/arguments", (req, res) => {
 });
 
 app.delete("/api/arguments", (req, res) => {
-	// Exemple si tu stockes tout dans un fichier ou une variable
 	db = {
 		topic: "",
 		pros: [],
@@ -89,7 +88,7 @@ app.post("/api/analyze-stream", async (req, res) => {
 						res.write(`data: ${JSON.stringify({ text: data.response })}\n\n`);
 					}
 				} catch (e) {
-					console.error("Erreur parsing:", e);
+					console.error("Error parsing:", e);
 				}
 			}
 		}
@@ -98,9 +97,9 @@ app.post("/api/analyze-stream", async (req, res) => {
 		res.write("data: [DONE]\n\n");
 		res.end();
 	} catch (error) {
-		console.error("Erreur:", error);
+		console.error("Error : ", error);
 		res.write(
-			`data: ${JSON.stringify({ error: "Erreur lors de l'analyse" })}\n\n`
+			`data: ${JSON.stringify({ error: "Error during analysis" })}\n\n`
 		);
 		res.end();
 	}
@@ -123,11 +122,11 @@ app.post("/api/analyze", async (req, res) => {
 		});
 
 		const data = await response.json();
-		const conclusion = data.response || "Réponse vide";
+		const conclusion = data.response || "Empty response";
 		res.json({ conclusion });
 	} catch (error) {
-		console.error("Erreur:", error);
-		res.status(500).json({ error: "Erreur lors de l'analyse" });
+		console.error("Error : ", error);
+		res.status(500).json({ error: "Error during analysis" });
 	}
 });
 
@@ -170,5 +169,5 @@ function createPrompt(evaluation) {
 
 const PORT = 3000;
 app.listen(PORT, () => {
-	console.log(`Serveur démarré sur http://localhost:${PORT}`);
+	console.log(`Server started on http://localhost:${PORT}`);
 });

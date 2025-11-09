@@ -118,12 +118,13 @@
 			<!-- (2) Functionality field -->
 			<div class="flex flex-col px-5 gap-y-2">
 				<!-- "New chat" button -->
-				<a
-					href="/"
+				<button
+					type="reset"
+					id="new-chat-btn"
 					class="bg-indigo-400/60 border rounded-3xl hover:bg-indigo-500/60 cursor-pointer transition p-2.5 px-8 flex text-nowrap justify-center"
 				>
 					New chat
-				</a>
+				</button>
 				<!-- "Research chat" button -->
 				<div
 					inputmode="text"
@@ -150,11 +151,19 @@
 							<circle cx="11" cy="11" r="8" /></svg
 					></span>
 				</div>
+				<!-- "New chat" button -->
+				<button
+					type="reset"
+					id="clear-btn"
+					class="bg-indigo-400/60 border rounded-3xl hover:bg-indigo-500/60 cursor-pointer transition p-2.5 px-8 flex text-nowrap text-red-300 justify-center"
+				>
+					Clear all sessions
+				</button>
 			</div>
 			<hr class="w-full border border-indigo-300/60 my-6" />
 			<!-- Historical of conversation -->
-			<span>Historical</span>
-			<ul id="history-list" class="flex flex-cols"></ul>
+			<span class="mb-3 font-light">Historical</span>
+			<ul id="history-list" class="flex flex-col"></ul>
 		</div>
 
 		<!-- Main -->
@@ -170,6 +179,7 @@
 					placeholder="Feed my son?"
 				/>
 				<button
+					id="topic-btn"
 					class="bg-linear-to-t from-blue-950 via-black to-red-950 text-white font-bold p-1 px-2.5 rounded-r-lg cursor-pointer hover:text-violet-100 transition"
 					type="submit"
 				>
@@ -307,6 +317,8 @@
 				<button
 					id="ask-btn"
 					class="bg-indigo-600 p-2.5 flex items-center flex-row text-white text-xl font-bold rounded-r-2xl w-40 cursor-pointer hover:bg-indigo-700 hover:translate-y-0.5 active:translate-y-1 transition opacity-50 pointer-events-none"
+					onmouseover="this.querySelector('img').classList.add('rotate-6');"
+					onmouseout="this.querySelector('img').classList.remove('rotate-6');"
 				>
 					<span class="m-auto">Conclude</span>
 					<img

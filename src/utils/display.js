@@ -3,10 +3,12 @@
 import { createIcons, icons } from "lucide";
 import { saveAllData } from "../main.js";
 import { evaluation } from "./appState.js";
-import { saveArguments } from "./apiClient.js";
+import { loadAllSessions } from "./history.js";
+import { getSessionId } from "./session.js";
+import { initEnterListeners } from "./enter-listener.js";
 
 // =========================
-// Function handleTopicInput (20% AI help)
+// Function handleTopicInput
 // =========================
 export function handleTopicInput(topicValue) {
 	const topicField = document.getElementById("topic-field");
@@ -63,6 +65,7 @@ export function handleTopicInput(topicValue) {
 		let input = document.createElement("input");
 		input.type = "text";
 		input.value = h2.textContent;
+		input.id = "temporary";
 		input.classList.add("border", "rounded", "p-1", "w-full");
 
 		topicField.replaceChild(input, h2);
@@ -86,12 +89,12 @@ export function handleTopicInput(topicValue) {
 		let lastTopic = input.value;
 
 		const finishEdit = (() => {
-			let finished = false; // empêche les appels multiples
+			let finished = false; // prevents multiple calls
 			return () => {
 				if (finished) return;
 				finished = true;
 
-				if (!topicField.contains(input)) return; // vérifie que l'input est toujours dans le DOM
+				if (!topicField.contains(input)) return; // checks that the input is still in the DOM
 
 				h2.innerHTML = `${
 					input.value || lastTopic
@@ -102,7 +105,7 @@ export function handleTopicInput(topicValue) {
 
 				evaluation.topic = h2.textContent;
 				createIcons({ icons });
-				saveAllData(); // Sauvegarde les données après modification
+				saveAllData(); // Save data after editing
 			};
 		})();
 
@@ -111,10 +114,11 @@ export function handleTopicInput(topicValue) {
 			if (e.key === "Enter") finishEdit();
 		});
 	});
+	saveAllData();
 }
 
 // =========================
-// Function displayValue (45% AI help)
+// Function displayValue
 // =========================
 export function displayValue(item, container, type) {
 	updateAskBtnState();
@@ -175,7 +179,7 @@ export function displayValue(item, container, type) {
 	// Edit Icon
 	// =========================
 	editIcon.addEventListener("click", () => {
-		let finished = false; // 🧩 placé ici pour éviter référence avant initialisation
+		let finished = false;
 		let input = document.createElement("input");
 		input.type = "text";
 		input.value = text.textContent;
@@ -188,20 +192,40 @@ export function displayValue(item, container, type) {
 			if (finished) return;
 			finished = true;
 			if (!element.contains(input)) return;
-			const arr = type === "pros" ? evaluation.pros : evaluation.cons;
-			const index = arr.findIndex((el) => el.id === item.id);
+
+			const sessionid = getSessionId();
+			const sessions = loadAllSessions();
+			const session = sessions[sessionid];
+
+			const evalArr = type === "pros" ? evaluation.pros : evaluation.cons;
+			const sessionArr = type === "pros" ? session.pros : session.cons;
+
+			const index = evalArr.findIndex((el) => el.id === item.id);
 
 			text.textContent = input.value || item.text;
+
 			if (input.value === "") {
 				element.remove();
-				if (index > -1) arr.splice(index, 1);
-
+				if (index > -1) {
+					evalArr.splice(index, 1);
+					sessionArr.splice(index, 1);
+				}
+				saveAllData();
 				updateAskBtnState();
 				return;
 			}
+
 			element.replaceChild(text, input);
-			if (index > -1) arr[index].text = input.value;
-			console.log(arr);
+
+			if (index > -1) {
+				evalArr[index].text = input.value;
+				sessionArr[index].text = input.value;
+			}
+
+			// Save to localStorage after editing
+			sessions[sessionid] = session;
+			localStorage.setItem("sessions", JSON.stringify(sessions));
+
 			item.text = input.value;
 			saveAllData();
 		};
@@ -217,10 +241,28 @@ export function displayValue(item, container, type) {
 	// =========================
 	deleteIcon.addEventListener("click", () => {
 		element.remove();
-		const arr = type === "pros" ? evaluation.pros : evaluation.cons;
-		const index = arr.findIndex((el) => el.id === item.id);
-		if (index > -1) arr.splice(index, 1);
 
+		const sessionId = getSessionId();
+		const sessions = loadAllSessions();
+		const session = sessions[sessionId];
+
+		if (!session) return;
+
+		const evalArr = type === "pros" ? evaluation.pros : evaluation.cons;
+		const sessionArr = type === "pros" ? session.pros : session.cons;
+
+		const index = evalArr.findIndex((el) => el.id === item.id);
+
+		if (index > -1) {
+			evalArr.splice(index, 1);
+			sessionArr.splice(index, 1);
+		}
+
+		// Save to localStorage after editing
+		sessions[sessionId] = session;
+		localStorage.setItem("sessions", JSON.stringify(sessions));
+
+		saveAllData();
 		updateAskBtnState();
 	});
 }
@@ -242,3 +284,7 @@ export function updateAskBtnState() {
 		askBtn.classList.add("opacity-50", "pointer-events-none");
 	}
 }
+
+document.addEventListener("DOMContentLoaded", () => {
+	initEnterListeners();
+});
