@@ -43,7 +43,7 @@ export function handleTopicInput(topicValue) {
 		"ease-in-out"
 	);
 
-	h2.innerHTML = `${topicValue}<div class="h-full w-0.5 bg-white mx-2"></div><i data-lucide="pencil" class="-mr-2"></i>`;
+	h2.innerHTML = `<span class="text-center">${topicValue}</span><div class="h-full w-0.5 bg-white mx-2"></div><i data-lucide="pencil" class="-mr-2"></i>`;
 	createIcons({ icons });
 
 	// Replace input by h2
@@ -96,9 +96,9 @@ export function handleTopicInput(topicValue) {
 
 				if (!topicField.contains(input)) return; // checks that the input is still in the DOM
 
-				h2.innerHTML = `${
+				h2.innerHTML = `<span class="text-center">${
 					input.value || lastTopic
-				}<div class="h-full w-0.5 bg-white mx-2"></div><i data-lucide="pencil" class="-mr-2"></i>`;
+				}</span><div class="h-full w-0.5 bg-white mx-2"></div><i data-lucide="pencil" class="-mr-2"></i>`;
 
 				topicField.replaceChild(h2, input);
 				editBtn.remove();
@@ -173,6 +173,7 @@ export function displayValue(item, container, type) {
 		deleteIcon.classList.add("sm:hidden");
 	});
 	container.append(element);
+
 	createIcons({ icons });
 
 	// =========================

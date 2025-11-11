@@ -169,7 +169,10 @@ export function formatText(text) {
 // =========================
 // Append user message
 // =========================
+let lastText = "";
 export function appendUserMessageToUI(text) {
+	if (text === lastText) return;
+
 	const userResponse = document.getElementById("user-response");
 	if (!userResponse) return;
 	userResponse.classList.remove("hidden");
@@ -179,6 +182,9 @@ export function appendUserMessageToUI(text) {
 		"self-end bg-linear-to-r from-blue-900 via-black to-red-900 text-white text-center p-2 rounded-xl mb-2 max-w-full break-words";
 	msgDiv.style.alignSelf = "flex-end";
 	msgDiv.textContent = text;
+	lastText = text;
+	console.log(lastText);
+
 	userResponse.appendChild(msgDiv);
 	userResponse.scrollTop = userResponse.scrollHeight;
 
@@ -226,7 +232,7 @@ export function createAssistantBubble() {
 
 	const bubble = document.createElement("div");
 	bubble.className =
-		"relative p-12 rounded-xl border shadow-md bg-[radial-gradient(ellipse_at_top,_rgba(139,92,246,0.7)_0%,_rgba(99,21,244,0.65)_100%)] backdrop-blur-sm text-white drop-shadow-md";
+		"relative p-6 sm:p-12 rounded-xl border shadow-md bg-[radial-gradient(ellipse_at_top,_rgba(139,92,246,0.7)_0%,_rgba(99,21,244,0.65)_100%)] backdrop-blur-sm text-white drop-shadow-md";
 
 	const bubbleContent = document.createElement("div");
 	bubbleContent.className = "bubble-content";

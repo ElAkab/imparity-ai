@@ -269,6 +269,25 @@ document.getElementById("clear-btn")?.addEventListener("click", () => {
 	imgElement.classList.remove("invisible");
 });
 
+const againstBtn = document.querySelector("#against-btn");
+const forBtn = document.querySelector("#for-btn");
+
+function switchList() {
+	const againstField = document.querySelector("#against-section");
+	const forField = document.querySelector("#for-section");
+
+	if (againstField.classList.contains("hidden")) {
+		againstField.classList.remove("hidden");
+		forField.classList.add("hidden");
+	} else {
+		againstField.classList.add("hidden");
+		forField.classList.remove("hidden");
+	}
+}
+
+againstBtn.addEventListener("click", switchList);
+forBtn.addEventListener("click", switchList);
+
 // =========================
 // Add For / Against
 // =========================

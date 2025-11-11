@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Imparity AI | Sign Up</title>
+		<link rel="stylesheet" href="../../src/style.css" />
+		<link rel="icon" type="image/png" href="/public/image/imparity-ai.png" />
+	</head>
+
+	<body
+		class="min-h-screen w-full flex flex-col justify-center items-center relative bg-linear-to-br from-blue-900 via-indigo-500 to-red-900 text-white antialiased"
+	>
+		<!-- Header -->
+		<header
+			class="w-full mb-4 bg-linear-to-r from-blue-500/30 via-indigo-600/80 to-red-500/30 backdrop-blur-sm border-b shadow-lg sticky top-0 z-10"
+		>
+			<div
+				class="w-full mx-auto px-3 sm:px-6 py-4 flex items-center justify-center gap-3"
+			>
+				<!-- Logo -->
+				<div
+					class="w-10 h-10 rounded-full flex items-center justify-center shadow-md hover:-rotate-3 active:rotate-6 transition"
+				>
+					<img
+						id="logo-ai"
+						src="/public/image/imparity-ai.png"
+						alt="Logo of Imparity AI"
+					/>
+				</div>
+				<h1
+					class="text-2xl font-bold text-white tracking-tight transition-transform cursor-pointer drop-shadow-lg"
+				>
+					Imparity <span class="text-violet-400">AI</span>
+				</h1>
+			</div>
+		</header>
+
+		<!-- Main content -->
+		<main
+			class="w-full mb-4 sm:mb-0 min-h-[calc(100vh-100px)] flex flex-col justify-center items-center px-3 sm:px-0"
+		>
+			<section
+				class="bg-white/15 backdrop-blur-sm border rounded-2xl p-7 w-full max-w-md flex flex-col shadow-2xl"
+			>
+				<form
+					action="/signup"
+					method="POST"
+					class="flex flex-col gap-5 relative w-fit"
+					autocomplete="on"
+					aria-labelledby="form-title"
+				>
+					<h2 id="form-title" class="text-2xl text-center font-bold">
+						Create your account
+					</h2>
+					<hr class="opacity-40" />
+
+					<!-- Name fields -->
+					<div class="flex w-full gap-5">
+						<div class="w-full flex flex-col">
+							<label for="first-name" class="sr-only">First name</label>
+							<input
+								id="first-name"
+								name="first-name"
+								class="input w-full"
+								type="text"
+								placeholder="First name"
+								required
+							/>
+						</div>
+
+						<div class="w-full flex flex-col">
+							<label for="last-name" class="sr-only">Last name</label>
+							<input
+								id="last-name"
+								name="last-name"
+								class="input w-full"
+								type="text"
+								placeholder="Last name"
+								required
+							/>
+						</div>
+					</div>
+
+					<!-- Email -->
+					<label for="email" class="sr-only">Email address</label>
+					<input
+						id="email"
+						name="email"
+						class="input"
+						type="email"
+						placeholder="Email address"
+						required
+					/>
+
+					<!-- Password fields -->
+					<div class="flex flex-col gap-2.5">
+						<label for="password" class="sr-only">Password</label>
+						<input
+							id="password"
+							name="password"
+							class="input"
+							type="password"
+							placeholder="Password"
+							required
+						/>
+						<button
+							type="button"
+							id="generate-password-btn"
+							class="font-semibold ml-auto mr-2.5 text-indigo-50 cursor-pointer w-fit hover:underline"
+						>
+							🔒 Generate a strong password
+						</button>
+						<label for="confirm-password" class="sr-only"
+							>Confirm password</label
+						>
+						<input
+							id="confirm-password"
+							name="confirm-password"
+							class="input"
+							type="password"
+							placeholder="Confirm password"
+							required
+						/>
+						<p
+							id="password-status"
+							class="text-xs text-green-300 hidden mt-1 ml-1"
+						>
+							Password generated successfully ✅
+						</p>
+					</div>
+
+					<!-- Submit -->
+					<button
+						type="submit"
+						class="w-full bg-radial-[at_85%_5%] hover:bg-black active:scale-95 cursor-pointer from-white to-zinc-900 to-35% text-white font-bold p-2 rounded-md border-2 border-black transition"
+					>
+						Sign up
+					</button>
+
+					<hr />
+
+					<!-- Third-party sign-up -->
+					<article class="flex flex-col gap-3.5 w-full relative">
+						<!-- Google -->
+						<div
+							id="google"
+							class="bg-white text-black w-full flex justify-center items-center rounded-xl border p-3 px-12 sm:px-8 cursor-pointer hover:-translate-y-0.5 transition shadow-sm"
+						>
+							<span class="font-bold sm:text-base text-nowrap"
+								>Continue with Google</span
+							>
+							<svg
+								class="ml-3.5 w-6"
+								xmlns="http://www.w3.org/2000/svg"
+								viewBox="0 0 128 128"
+							>
+								<path
+									fill="#fff"
+									d="M44.59 4.21a63.28 63.28 0 004.33 120.9 67.6 67.6 0 0032.36.35 57.13 57.13 0 0025.9-13.46 57.44 57.44 0 0016-26.26 74.33 74.33 0 001.61-33.58H65.27v24.69h34.47a29.72 29.72 0 01-12.66 19.52 36.16 36.16 0 01-13.93 5.5 41.29 41.29 0 01-15.1 0A37.16 37.16 0 0144 95.74a39.3 39.3 0 01-14.5-19.42 38.31 38.31 0 010-24.63 39.25 39.25 0 019.18-14.91A37.17 37.17 0 0176.13 27a34.28 34.28 0 0113.64 8q5.83-5.8 11.64-11.63c2-2.09 4.18-4.08 6.15-6.22A61.22 61.22 0 0087.2 4.59a64 64 0 00-42.61-.38z"
+								/>
+								<path
+									fill="#e33629"
+									d="M44.59 4.21a64 64 0 0142.61.37 61.22 61.22 0 0120.35 12.62c-2 2.14-4.11 4.14-6.15 6.22Q95.58 29.23 89.77 35a34.28 34.28 0 00-13.64-8 37.17 37.17 0 00-37.46 9.74 39.25 39.25 0 00-9.18 14.91L8.76 35.6A63.53 63.53 0 0144.59 4.21z"
+								/>
+								<path
+									fill="#f8bd00"
+									d="M3.26 51.5a62.93 62.93 0 015.5-15.9l20.73 16.09a38.31 38.31 0 000 24.63q-10.36 8-20.73 16.08a63.33 63.33 0 01-5.5-40.9z"
+								/>
+								<path
+									fill="#587dbd"
+									d="M65.27 52.15h59.52a74.33 74.33 0 01-1.61 33.58 57.44 57.44 0 01-16 26.26c-6.69-5.22-13.41-10.4-20.1-15.62a29.72 29.72 0 0012.66-19.54H65.27c-.01-8.22 0-16.45 0-24.68z"
+								/>
+								<path
+									fill="#319f43"
+									d="M8.75 92.4q10.37-8 20.73-16.08A39.3 39.3 0 0044 95.74a37.16 37.16 0 0014.08 6.08 41.29 41.29 0 0015.1 0 36.16 36.16 0 0013.93-5.5c6.69 5.22 13.41 10.4 20.1 15.62a57.13 57.13 0 01-25.9 13.47 67.6 67.6 0 01-32.36-.35 63 63 0 01-23-11.59A63.73 63.73 0 018.75 92.4z"
+								/>
+							</svg>
+						</div>
+
+						<!-- Facebook -->
+						<div
+							id="facebook"
+							class="bg-[#3b5998] text-white w-full flex rounded-xl border border-white p-3 px-8 justify-center items-center cursor-pointer hover:-translate-y-0.5 transition shadow-xl"
+						>
+							<span class="font-bold text-nowrap">Continue with Facebook</span>
+							<svg
+								class="w-6 ml-2"
+								xmlns="http://www.w3.org/2000/svg"
+								viewBox="0 0 128 128"
+							>
+								<rect
+									fill="#3d5a98"
+									x="4.83"
+									y="4.83"
+									width="118.35"
+									height="118.35"
+									rx="6.53"
+									ry="6.53"
+								/>
+								<path
+									fill="#fff"
+									d="M86.48 123.17V77.34h15.38l2.3-17.86H86.48v-11.4c0-5.17 1.44-8.7 8.85-8.7h9.46v-16A126.56 126.56 0 0091 22.7c-13.62 0-23 8.3-23 23.61v13.17H52.62v17.86H68v45.83z"
+								/>
+							</svg>
+						</div>
+					</article>
+				</form>
+
+				<!-- Already have an account -->
+				<div class="w-full h-full flex flex-col mt-4">
+					<h3 class="text-base text-center -mb-2">Already have an account?</h3>
+					<a
+						href="/login"
+						class="p-2 w-full mt-4 bg-linear-to-tr from-indigo-400 via-white/5 to-violet-400 hover:from-violet-400 hover:to-indigo-400 border transition text-base font-bold text-center rounded-xl"
+					>
+						Log in
+					</a>
+				</div>
+			</section>
+
+			<!-- Optional legal section -->
+			<p class="text-xs text-center mt-6 opacity-70 max-w-sm">
+				By signing up, you agree to our
+				<a href="/terms" class="underline hover:text-indigo-300">Terms</a> and
+				<a href="/privacy" class="underline hover:text-indigo-300"
+					>Privacy Policy</a
+				>.
+			</p>
+		</main>
+
+		<script src="script.js" defer></script>
+	</body>
+</html>

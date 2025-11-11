@@ -1,7 +1,14 @@
 @import "tailwindcss";
 
-.animate-gradient {
-	animation: gradient 15s ease infinite;
+@theme {
+	--color-facebook: #3d5a98;
+}
+
+/* Classe globale pour les inputs */
+.input {
+	@apply bg-white/0 border border-b-violet-900 border-r-violet-400 rounded-md px-4 py-2 
+         focus:outline-none focus:ring-2 focus:ring-violet-500/40 
+         focus:border ring-violet-500/40 transition-colors;
 }
 
 /* Styles pour le formatage markdown */

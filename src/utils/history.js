@@ -204,7 +204,7 @@ function closeDropdown(dropdown) {
 export function loadSession(sessionId) {
 	const sessions = loadAllSessions();
 	const session = sessions[sessionId];
-	if (!session) return alert("Session introuvable");
+	if (!session) return;
 
 	// ======================
 	// Setup UI Elements
@@ -291,7 +291,7 @@ export function loadSession(sessionId) {
 
 				const bubble = document.createElement("div");
 				bubble.className =
-					"relative p-12 rounded-xl border shadow-md bg-[radial-gradient(ellipse_at_top,_rgba(139,92,246,0.7)_0%,_rgba(99,21,244,0.65)_100%)] backdrop-blur-sm text-white drop-shadow-md";
+					"relative p-6 sm:p-12 rounded-xl border shadow-md bg-[radial-gradient(ellipse_at_top,_rgba(139,92,246,0.7)_0%,_rgba(99,21,244,0.65)_100%)] backdrop-blur-sm text-sm sm:text-base text-white drop-shadow-md";
 				bubble.innerHTML = formatText(msg.content);
 
 				wrapper.appendChild(bubble);

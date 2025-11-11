@@ -1,10 +1,10 @@
 // utils/clear-html.js
 
-import { updateAskBtnState } from "./display";
-
 export function newHTML() {
 	const topicField = document.querySelector("#topic-field");
 	if (!topicField) return;
+	if (topicField.classList.contains("opacity-50", "pointer-events-none"))
+		topicField.classList.remove("opacity-50", "pointer-events-none");
 
 	// Vérifie si un input existe déjà
 	let oldInput = topicField.querySelector("input");
