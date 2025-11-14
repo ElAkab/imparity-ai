@@ -5,8 +5,7 @@ import { evaluation } from "./appState.js";
 // =========================
 
 export async function loadArguments() {
-	const res =
-		(await fetch("http://localhost:3000/api/arguments")) || evaluation;
+	const res = (await fetch("/api/arguments")) || evaluation;
 	return await res.json();
 }
 
@@ -18,7 +17,7 @@ export async function saveArguments(
 	messages,
 	sessionId
 ) {
-	const res = await fetch("http://localhost:3000/api/arguments", {
+	const res = await fetch("/api/arguments", {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
 		body: JSON.stringify({
@@ -34,7 +33,7 @@ export async function saveArguments(
 }
 
 export async function clearArguments() {
-	const res = await fetch("http://localhost:3000/api/arguments", {
+	const res = await fetch("/api/arguments", {
 		method: "DELETE",
 	});
 	return res.json();

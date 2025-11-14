@@ -5,7 +5,7 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>Imparity AI</title>
 		<link href="/src/style.css" rel="stylesheet" />
-		<link href="/public/image/imparity-ai.png" rel="icon" />
+		<link href="/image/imparity-ai.png" rel="icon" />
 	</head>
 	<body
 		class="min-h-screen w-full relative bg-linear-to-br from-blue-900 via-indigo-500 to-red-900 text-white antialiased"
@@ -45,7 +45,7 @@
 					>
 						<img
 							id="logo-ai"
-							src="/public/image/imparity-ai.png"
+							src="/image/imparity-ai.png"
 							alt="Logo : Imparity AI"
 						/>
 					</div>
@@ -57,19 +57,50 @@
 				</div>
 
 				<!-- Auth buttons -->
-				<div class="flex items-center gap-2 sm:gap-4">
-					<button
+				<div id="auth-buttons" class="flex items-center gap-2 sm:gap-4">
+					<a
+						href="/pages/form/index.html"
 						data-action="signup"
 						class="px-2 py-1 sm:px-5 sm:py-2 bg-white text-violet-600 text-nowrap font-semibold rounded-lg hover:bg-violet-50 transition-all duration-200 shadow-md hover:shadow-lg cursor-pointer active:scale-95"
 					>
 						Sign up
-					</button>
-					<button
+					</a>
+					<a
+						href="/pages/form/index1.html"
 						data-action="signin"
 						class="px-2 py-1 sm:px-5 sm:py-2 bg-linear-to-tr from-violet-400 via-violet-500/65 to-violet-600 hover:to-violet-500 backdrop-blur-sm text-white text-nowrap font-semibold rounded-lg transition-all duration-200 shadow-md hover:shadow-lg cursor-pointer active:scale-95"
 					>
-						Sign in
+						Log in
+					</a>
+				</div>
+				<div id="user-menu" class="relative">
+					<button
+						id="menu-button"
+						class="px-4 py-2 text-left w-full bg-linear-to-tl from-red-950 via-indigo-950 to-blue-950 hover:bg-black rounded-full cursor-pointer"
+					>
+						User Menu
 					</button>
+					<div
+						id="dropdown"
+						class="hidden absolute right-0 mt-2 w-48 bg-indigo-600 backdrop-blur-sm border border-gray-200 rounded shadow-lg z-10"
+					>
+						<button
+							class="block w-full px-4 py-2 text-left hover:bg-indigo-500 cursor-pointer hover:text-white rounded"
+						>
+							Profile
+						</button>
+						<button
+							class="block w-full px-4 py-2 text-left hover:bg-indigo-500 cursor-pointer hover:text-white rounded"
+						>
+							Settings
+						</button>
+						<button
+							id="log-out"
+							class="block w-full px-4 py-2 text-left text-red-600 hover:bg-red-500 cursor-pointer hover:text-white rounded"
+						>
+							Log out
+						</button>
+					</div>
 				</div>
 			</div>
 		</header>
@@ -87,7 +118,7 @@
 						class="w-10 h-10 hover:bg-white/5 rounded-full flex items-center justify-center shadow-md hover:-rotate-3 active:rotate-6 cursor-pointer transition"
 					>
 						<img
-							src="/public/image/imparity-ai.png"
+							src="/image/imparity-ai.png"
 							alt="Logo : Imparity AI"
 							class="rounded-full transition"
 						/>

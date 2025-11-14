@@ -7,6 +7,7 @@ import { saveAllData } from "../main";
 import { evaluation } from "./appState.js";
 import { loadAllSessions } from "./history.js";
 import { getSessionId } from "./session.js";
+import { checkAuth } from "./token.js";
 
 export function getActiveSession() {
 	return {
@@ -57,7 +58,7 @@ export async function analyzeWithStream(allEvaluation, bubbleContext) {
 	let firstChunk = true;
 
 	try {
-		const response = await fetch("http://localhost:3000/api/analyze-stream", {
+		const response = await fetch("/api/analyze-stream", {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify(allEvaluation),
@@ -105,6 +106,7 @@ export async function analyzeWithStream(allEvaluation, bubbleContext) {
 					if (aiInput) aiInput.disabled = false;
 					if (aiSendBtn) aiSendBtn.disabled = false;
 
+					checkAuth();
 					saveAllData();
 					return;
 				}

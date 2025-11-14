@@ -17,13 +17,11 @@ export function getSessionId() {
 export function resetSession(forceNew = true) {
 	let sessions = JSON.parse(localStorage.getItem("sessions") || "{}");
 
-	let sessionId = localStorage.getItem("sessionId");
-
-	// // Creates a new ID if a new session is forced or if no session exists
+	// Creates a new ID if a new session is forced or if no session exists
+	let sessionId = getSessionId();
 	if (!sessionId || forceNew) {
 		sessionId = crypto.randomUUID();
 		localStorage.setItem("sessionId", sessionId);
-		console.log("New session created :", sessionId);
 	} else {
 		console.log("Session reset :", sessionId);
 	}
@@ -64,6 +62,18 @@ export async function postWithSession(url, data) {
 
 	console.log("📩 POST sent with sessionId:", sessionId);
 	return res.json();
+}
+
+export function loadEvaluation() {
+	const stored = localStorage.getItem("evaluation");
+	if (stored) {
+		const data = JSON.parse(stored);
+		evaluation.topic = data.topic || "";
+		evaluation.pros = data.pros || [];
+		evaluation.cons = data.cons || [];
+		evaluation.followUp = data.followUp || [];
+		evaluation.messages = data.messages || [];
+	}
 }
 
 // Deletes all local data
