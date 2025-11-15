@@ -29,8 +29,10 @@ export async function analyzeWithStream(allEvaluation, bubbleContext) {
 	if (isStreaming) return;
 	isStreaming = true;
 
-	if (aiInput) aiInput.disabled = true;
-	if (aiSendBtn) aiSendBtn.disabled = true;
+	if (aiInput && aiSendBtn) {
+		aiInput.disabled = true;
+		aiSendBtn.disabled = true;
+	}
 
 	// Get or create the bubble context
 	let wrapper, typing, bubbleContent;
@@ -48,8 +50,6 @@ export async function analyzeWithStream(allEvaluation, bubbleContext) {
 	if (!wrapper || !bubbleContent) {
 		console.error("Error : Wrapper or bubbleContent not defined !");
 		isStreaming = false;
-		if (aiInput) aiInput.disabled = false;
-		if (aiSendBtn) aiSendBtn.disabled = false;
 		return;
 	}
 
@@ -102,8 +102,17 @@ export async function analyzeWithStream(allEvaluation, bubbleContext) {
 					if (typing?.parentElement) typing.remove();
 
 					isStreaming = false;
-					if (aiInput) aiInput.disabled = false;
-					if (aiSendBtn) aiSendBtn.disabled = false;
+					// If not authentifiate => show the | Authentication / Subscription | Modal
+					if (!evaluation.isAuthenticated) {
+						const planField = document.querySelector("#plan-field");
+						planField.classList.replace("hidden", "flex");
+					} else {
+						planField.classList.replace("flex", "hidden");
+						aiInput.disabled = false;
+						aiSendBtn.disabled = false;
+
+						aiSendBtn.classList.remove("opacity-50", "pointer-events-none");
+					}
 
 					saveAllData();
 					return;

@@ -5,6 +5,11 @@ import { evaluation } from "./appState.js";
 export function getSessionId() {
 	let sessionId = localStorage.getItem("sessionId");
 
+	if (!evaluation.isAuthenticated) {
+		// Pas d'utilisateur authentifié, ne rien créer
+		return sessionId || null;
+	}
+
 	if (!sessionId) {
 		sessionId = crypto.randomUUID();
 		localStorage.setItem("sessionId", sessionId);
