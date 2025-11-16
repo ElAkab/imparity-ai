@@ -7,6 +7,7 @@ import { saveAllData } from "../main";
 import { evaluation } from "./appState.js";
 import { loadAllSessions } from "./history.js";
 import { getSessionId } from "./session.js";
+import { loadModal } from "./load-modal.js";
 
 export function getActiveSession() {
 	return {
@@ -102,17 +103,7 @@ export async function analyzeWithStream(allEvaluation, bubbleContext) {
 					if (typing?.parentElement) typing.remove();
 
 					isStreaming = false;
-					// If not authentifiate => show the | Authentication / Subscription | Modal
-					if (!evaluation.isAuthenticated) {
-						const planField = document.querySelector("#plan-field");
-						planField.classList.replace("hidden", "flex");
-					} else {
-						planField.classList.replace("flex", "hidden");
-						aiInput.disabled = false;
-						aiSendBtn.disabled = false;
-
-						aiSendBtn.classList.remove("opacity-50", "pointer-events-none");
-					}
+					loadModal(evaluation); // Load the modal based on evaluation
 
 					saveAllData();
 					return;

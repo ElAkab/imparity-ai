@@ -11,6 +11,10 @@
          focus:border ring-violet-500/40 transition-colors;
 }
 
+.select-option {
+	@apply bg-violet-900 border border-b-violet-900 border-r-violet-400 rounded-md p-2 hover:bg-violet-500 transition-colors;
+}
+
 /* Styles pour le formatage markdown */
 .whitespace-pre-wrap h1 {
 	font-size: 1.5em;

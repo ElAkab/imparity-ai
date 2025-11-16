@@ -59,14 +59,14 @@
 				<!-- Auth buttons -->
 				<div class="flex items-center gap-2 sm:gap-4">
 					<a
-						href="/signup"
+						href="/pages/form/index.html"
 						data-action="signup"
 						class="px-2 py-1 sm:px-5 sm:py-2 bg-white text-violet-600 text-nowrap font-semibold rounded-lg hover:bg-violet-50 transition-all duration-200 shadow-md hover:shadow-lg cursor-pointer active:scale-95"
 					>
 						Sign up
 					</a>
 					<a
-						href="/login"
+						href="/pages/form/index1.html"
 						data-action="signin"
 						class="px-2 py-1 sm:px-5 sm:py-2 bg-linear-to-tr from-violet-400 via-violet-500/65 to-violet-600 hover:to-violet-500 backdrop-blur-sm text-white text-nowrap font-semibold rounded-lg transition-all duration-200 shadow-md hover:shadow-lg cursor-pointer active:scale-95"
 					>
@@ -389,12 +389,13 @@
 				</div>
 			</form>
 
+			<!--  -->
 			<!-- Authentication / Subscription | Modal -->
 			<section
 				id="plan-field"
-				class="w-full flex-col justify-center items-center bg-violet-300/15 backdrop-blur-2xl border rounded-xl mt-4 p-7 xl:p-10 hidden"
+				class="w-full flex flex-col justify-center items-center bg-violet-300/15 backdrop-blur-2xl border rounded-xl mt-4 p-7 xl:p-10"
 			>
-				<h3 class="text-center text-2xl xl:text-3xl font-extrabold mb-6">
+				<h3 class="text-center text-2xl xl:text-3xl font-extrabold mb-8">
 					Choose your plan
 				</h3>
 
@@ -403,32 +404,32 @@
 				>
 					<!-- Free Plan -->
 					<article
-						class="border border-black rounded-xl p-6 xl:p-10 shadow hover:shadow-lg transition bg-white"
+						class="border border-black rounded-xl p-6 xl:p-10 shadow hover:shadow-lg transition bg-white flex flex-col"
 					>
 						<h4
-							class="text-xl xl:text-2xl text-center font-semibold mb-2 text-blue-800"
+							class="text-xl xl:text-2xl text-center font-semibold mb-4 text-blue-800"
 						>
 							Free Plan <span class="ml-2 italic underline">0$</span>
 						</h4>
 
-						<hr class="mb-4 border-gray-300" />
+						<hr class="mb-4 border-black/50" />
 
 						<ul
-							class="flex flex-col px-6 gap-2 text-gray-700 list-disc list-inside text-base xl:text-lg"
+							class="flex-1 flex flex-col gap-3 text-gray-700 text-base xl:text-lg list-disc list-inside px-2"
 						>
 							<li>
-								<strong>AI interaction :</strong> Chat with the AI to expand the
+								<strong>AI interaction:</strong> Chat with the AI to expand the
 								topic
 							</li>
-							<li><strong>History :</strong> Short-term session saved</li>
+							<li><strong>History:</strong> Short-term session saved</li>
 							<li class="text-sm italic text-gray-500">
-								Authentication required for saving sessions
+								Authentication required to save sessions
 							</li>
 						</ul>
 
 						<a
-							href="/signup"
-							class="mt-6 w-full block text-center bg-blue-800 text-white font-bold py-2 px-4 rounded hover:bg-blue-900 transition"
+							href="/pages/form/index.html"
+							class="mt-6 w-full block text-center bg-blue-800 text-white font-bold py-3 px-4 rounded hover:bg-blue-900 transition"
 						>
 							Get Started
 						</a>
@@ -436,34 +437,34 @@
 
 					<!-- Premium Plan -->
 					<article
-						class="border rounded-xl p-6 xl:p-10 shadow hover:shadow-lg transition bg-linear-to-br from-purple-600 to-indigo-700 text-white"
+						class="border rounded-xl p-6 xl:p-10 shadow hover:shadow-lg transition bg-linear-to-br from-purple-600 to-indigo-700 text-white flex flex-col"
 					>
-						<h4 class="text-xl xl:text-2xl text-center font-semibold mb-2">
-							Premium Plan <span class="ml-2 italic underline">4$</span>
+						<h4 class="text-xl xl:text-2xl text-center font-semibold mb-4">
+							PREMIUM MODE <span class="ml-2 italic underline">4$</span>
 						</h4>
 
 						<hr class="mb-4 border-white/50" />
 
 						<ul
-							class="flex flex-col gap-2 list-disc list-inside text-base xl:text-lg"
+							class="flex-1 flex flex-col gap-3 text-base xl:text-lg list-disc list-inside px-2"
 						>
+							<li><strong>History:</strong> Unlimited sessions</li>
 							<li>
-								<strong>Access :</strong> Full AI interaction with chat history
+								<strong>AI interaction:</strong> Chat with the AI to expand the
+								topic + advanced analysis & follow-up requests
 							</li>
-							<li>
-								<strong>Advanced Features :</strong> Extended topic analysis
-							</li>
-							<li><strong>History :</strong> Unlimited storage of sessions</li>
+							<li><strong>Sync:</strong> Across multiple devices</li>
 							<li class="text-sm italic opacity-80">
-								Exclusive premium features
+								Bonus: longer responses, smarter AI, PDF export, multiple
+								simultaneous sessions
 							</li>
 						</ul>
 
 						<a
 							href="/subscribe"
-							class="mt-6 w-full block text-center bg-white text-purple-700 font-bold py-2 px-4 rounded hover:bg-gray-100 transition"
+							class="mt-6 w-full block text-center bg-white text-purple-700 font-bold py-3 px-4 rounded hover:bg-gray-100 transition"
 						>
-							Upgrade Now
+							Upgrade to Premium
 						</a>
 					</article>
 				</section>

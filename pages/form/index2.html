@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Upgrade to Premium | Imparity AI</title>
+		<link rel="stylesheet" href="../../src/style.css" />
+		<link href="/public/image/imparity-ai.png" rel="icon" />
+	</head>
+	<body
+		class="min-h-screen w-full flex flex-col justify-center items-center bg-linear-to-br from-blue-900 via-indigo-500 to-red-900 text-white antialiased"
+	>
+		<main
+			class="w-full min-h-[calc(100vh-100px)] flex flex-col justify-center items-center px-3 sm:px-0"
+		>
+			<section
+				class="bg-white/15 backdrop-blur-sm border rounded-2xl p-7 w-full max-w-md flex flex-col shadow-2xl"
+			>
+				<h2 class="text-2xl font-bold text-center mb-4">Upgrade to Premium</h2>
+
+				<hr class="opacity-40 mb-6" />
+
+				<form
+					action="/upgrade-premium"
+					method="POST"
+					class="flex flex-col gap-5"
+					id="upgrade-form"
+				>
+					<!-- User Info -->
+					<div class="flex flex-col gap-2" id="user-info">
+						<label for="firstName" class="sr-only">First Name</label>
+						<input
+							id="firstName"
+							name="firstName"
+							type="text"
+							placeholder="First Name"
+							class="input w-full"
+							required
+						/>
+
+						<label for="lastName" class="sr-only">Last Name</label>
+						<input
+							id="lastName"
+							name="lastName"
+							type="text"
+							placeholder="Last Name"
+							class="input w-full"
+							required
+						/>
+
+						<label for="email" class="sr-only">Email</label>
+						<input
+							id="email"
+							name="email"
+							type="email"
+							placeholder="Email address"
+							class="input w-full"
+							required
+						/>
+
+						<label for="password" class="sr-only">Password</label>
+						<input
+							id="password"
+							name="password"
+							type="password"
+							placeholder="Password"
+							class="input w-full"
+							required
+						/>
+					</div>
+
+					<!-- Plan Selection -->
+					<div class="flex flex-col gap-2">
+						<label class="text-sm font-semibold"
+							>Choose your Premium plan</label
+						>
+						<select name="plan" class="input w-full" required>
+							<option class="select-option" value="premium-monthly">
+								Premium - Monthly ($4)
+							</option>
+							<option class="select-option" value="premium-yearly">
+								Premium - Yearly ($40)
+							</option>
+						</select>
+					</div>
+
+					<!-- Terms -->
+					<div class="flex items-start gap-2 text-gray-200 text-sm">
+						<input
+							type="checkbox"
+							id="terms"
+							name="terms"
+							required
+							class="mt-1"
+						/>
+						<label for="terms">
+							I agree to the
+							<a href="/terms" class="underline hover:text-indigo-300">Terms</a>
+							and
+							<a href="/privacy" class="underline hover:text-indigo-300"
+								>Privacy Policy</a
+							>.
+						</label>
+					</div>
+
+					<!-- Submit Button -->
+					<button
+						type="submit"
+						id="submit-btn"
+						class="w-full bg-radial-[at_85%_5%] hover:bg-black active:scale-95 cursor-pointer from-white to-zinc-900 to-35% text-white font-bold p-2 rounded-md border-2 border-black transition"
+					>
+						Confirm Upgrade
+					</button>
+				</form>
+
+				<hr class="my-4 opacity-40" />
+				<a
+					href="/dashboard"
+					class="text-center text-sm text-indigo-200 hover:underline"
+					>Back to Dashboard</a
+				>
+			</section>
+		</main>
+	</body>
+</html>

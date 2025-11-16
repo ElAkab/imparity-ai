@@ -3,7 +3,7 @@
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>Imparity AI | Sign Up</title>
+		<title>Imparity AI | Log In</title>
 		<link rel="stylesheet" href="../../src/style.css" />
 		<link rel="icon" type="image/png" href="/image/imparity-ai.png" />
 	</head>
@@ -45,42 +45,16 @@
 				class="bg-white/15 backdrop-blur-sm border rounded-2xl p-7 w-full max-w-md flex flex-col shadow-2xl"
 			>
 				<form
-					action="/signup"
+					action="/login"
 					method="POST"
-					class="flex flex-col gap-5 relative w-fit"
+					class="flex flex-col w-full gap-5 relative"
 					autocomplete="on"
 					aria-labelledby="form-title"
 				>
 					<h2 id="form-title" class="text-2xl text-center font-bold">
-						Create your account
+						Login to your account
 					</h2>
 					<hr class="opacity-40" />
-
-					<!-- Name fields -->
-					<div class="flex w-full gap-5">
-						<div class="w-full flex flex-col">
-							<label for="first-name" class="sr-only">First name</label>
-							<input
-								id="first-name"
-								name="first-name"
-								class="input w-full"
-								type="text"
-								placeholder="First name"
-								required
-							/>
-						</div>
-
-						<div class="w-full flex flex-col">
-							<label for="last-name" class="sr-only">Last name</label>
-							<input
-								id="last-name"
-								name="last-name"
-								class="input w-full"
-								type="text"
-								placeholder="Last name (optionnal)"
-							/>
-						</div>
-					</div>
 
 					<!-- Email -->
 					<label for="email" class="sr-only">Email address</label>
@@ -95,7 +69,7 @@
 					/>
 
 					<!-- Password fields -->
-					<div class="flex flex-col gap-2.5 relative">
+					<div class="flex w-full flex-col gap-2.5 relative">
 						<label for="password" class="sr-only">Password</label>
 						<input
 							id="password"
@@ -145,64 +119,6 @@
 							/>
 							<path d="m2 2 20 20" />
 						</svg>
-						<button
-							type="button"
-							id="generate-password-btn"
-							class="font-semibold ml-auto mr-2.5 text-indigo-50 cursor-pointer w-fit hover:underline"
-						>
-							Generate a strong password 🔒
-						</button>
-						<label for="confirm-password" class="sr-only"
-							>Confirm password</label
-						>
-						<input
-							id="confirm-password"
-							name="confirm-password"
-							class="input"
-							type="password"
-							placeholder="Confirm password"
-							required
-						/>
-						<svg
-							xmlns="http://www.w3.org/2000/svg"
-							width="24"
-							height="24"
-							viewBox="0 0 24 24"
-							fill="none"
-							stroke="currentColor"
-							stroke-width="2"
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							id="open-eye-2"
-							class="lucide lucide-eye-icon lucide-eye absolute right-3 bottom-2 hidden cursor-pointer"
-						>
-							<path
-								d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"
-							/>
-							<circle cx="12" cy="12" r="3" />
-						</svg>
-						<svg
-							xmlns="http://www.w3.org/2000/svg"
-							width="24"
-							height="24"
-							viewBox="0 0 24 24"
-							fill="none"
-							stroke="currentColor"
-							stroke-width="2"
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							id="closed-eye-2"
-							class="lucide lucide-eye-off-icon lucide-eye-off absolute right-3 bottom-2 hidden cursor-pointer"
-						>
-							<path
-								d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49"
-							/>
-							<path d="M14.084 14.158a3 3 0 0 1-4.242-4.242" />
-							<path
-								d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143"
-							/>
-							<path d="m2 2 20 20" />
-						</svg>
 					</div>
 
 					<!-- Submit -->
@@ -211,12 +127,12 @@
 						id="submit-btn"
 						class="w-full bg-radial-[at_85%_5%] hover:bg-black active:scale-95 cursor-pointer from-white to-zinc-900 to-35% text-white font-bold p-2 rounded-md border-2 border-black transition"
 					>
-						Sign up
+						Log in
 					</button>
 
 					<hr />
 
-					<!-- Third-party sign-up -->
+					<!-- Services connect -->
 					<article class="flex flex-col gap-3.5 w-full relative">
 						<!-- Google -->
 						<div
@@ -283,28 +199,28 @@
 					</article>
 				</form>
 
-				<!-- Already have an account -->
+				<!-- Doesn't have an account -->
 				<div class="w-full h-full flex flex-col mt-4">
-					<h3 class="text-base text-center -mb-2">Already have an account?</h3>
+					<h3 class="text-base text-center -mb-2">Doesn't have an account?</h3>
 					<a
-						href="/pages/form/index1.html"
+						href="/pages/form/index.html"
 						class="p-2 w-full mt-4 bg-linear-to-tr from-indigo-400 via-white/5 to-violet-400 hover:from-violet-400 hover:to-indigo-400 border transition text-base font-bold text-center rounded-xl"
 					>
-						Log in
+						Sign up
 					</a>
 				</div>
 			</section>
 
 			<!-- Optional legal section -->
-			<p class="text-xs text-center mt-6 opacity-70 max-w-sm">
+			<!-- <p class="text-xs text-center mt-6 opacity-70 max-w-sm">
 				By signing up, you agree to our
 				<a href="/terms" class="underline hover:text-indigo-300">Terms</a> and
 				<a href="/privacy" class="underline hover:text-indigo-300"
 					>Privacy Policy</a
 				>.
-			</p>
+			</p> -->
 		</main>
 
-		<script src="./scripts/signup/script.js" type="module" defer></script>
+		<script src="./scripts/login/script.js" defer></script>
 	</body>
 </html>

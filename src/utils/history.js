@@ -51,18 +51,20 @@ export function renderHistory() {
 	if (!evaluation.isAuthenticated) {
 		historyField.innerHTML = `
 			<span class="mb-3 font-light">History ?</span>
-			<button
+			<a
+				href="/pages/form/index.html"
 				data-action="signup"
-				class="w-full bg-white text-violet-600 text-nowrap font-bold rounded-xl p-2.5 px-8 hover:bg-violet-50 transition-all duration-200 shadow-md hover:shadow-lg cursor-pointer active:scale-95"
+				class="w-full bg-white text-violet-600 text-nowrap text-center font-bold rounded-xl p-2.5 px-8 hover:bg-violet-50 transition-all duration-200 shadow-md hover:shadow-lg cursor-pointer active:scale-95"
 			>
 				Sign up
-			</button>
-			<button
+			</a>
+			<a
+				href="/pages/form/index1.html"
 				data-action="signin"
-				class="w-full bg-linear-to-tr from-violet-400 via-violet-500/65 to-violet-600 hover:to-violet-500 backdrop-blur-sm text-white text-nowrap p-2.5 px-8 border-2  border-white-br font-bold rounded-xl transition-all duration-200 shadow-md hover:shadow-lg cursor-pointer active:scale-95"
+				class="w-full bg-linear-to-tr from-violet-400 via-violet-500/65 to-violet-600 hover:to-violet-500 backdrop-blur-sm text-white text-nowrap text-center p-2.5 px-8 border-2  border-white-br font-bold rounded-xl transition-all duration-200 shadow-md hover:shadow-lg cursor-pointer active:scale-95"
 			>
 				Log in
-			</button>
+			</a>
 		`;
 		return;
 	}
