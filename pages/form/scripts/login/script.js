@@ -1,10 +1,20 @@
 // Login script
 
+import { isAuth } from "../../../../src/utils/isAuth";
+
 // =========================
 // Initialization
 // =========================
+const raw = localStorage.getItem("inscription");
+const data = raw ? JSON.parse(raw) : null;
+
 const emailInput = document.getElementById("email");
 const passwordInput = document.getElementById("password");
+// Load the infos IF...
+if (data && data.email) {
+	emailInput.value = data.email;
+}
+
 const submitBtn = document.getElementById("submit-btn");
 
 const open1 = document.getElementById("open-eye-1");
@@ -77,20 +87,27 @@ submitBtn.addEventListener("click", async (e) => {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify({ email, password }),
-			credentials: "include", // pour envoyer/recevoir le cookie JWT
+			credentials: "include",
 		});
 
 		const data = await res.json();
+		localStorage.setItem("token", JSON.stringify(data));
+		isAuth();
 
 		if (!res.ok) {
-			// ⚡ Si email déjà pris, res.status sera 409
-			if (res.status === 409) {
-				return alert(data.error); // "Email already used"
+			if (res.status === 404) {
+				return alert(data.message || "Email not found");
 			}
-			return alert(data.error || "Something went wrong");
+			if (res.status === 401) {
+				return alert(data.message || "Invalid password");
+			}
+			return alert(data.message || "Something went wrong");
 		}
 
-		alert("✅ Connected !");
+		// Sauvegarder le token dans localStorage | localStorage.getItem("authToken")
+		// localStorage.setItem("authToken", data.token);
+
+		alert("✅ Connected!");
 
 		window.location.href = "/index.html";
 	} catch (err) {

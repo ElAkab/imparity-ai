@@ -145,21 +145,26 @@ submitBtn.addEventListener("click", async (e) => {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify({ firstName, lastName, email, password }),
-			credentials: "include", // pour envoyer/recevoir le cookie JWT
+			credentials: "include", // permet d'envoyer/recevoir le cookie JWT
 		});
 
-		const data = await res.json();
-
+		// ----- SI ERREUR -----
 		if (!res.ok) {
-			if (res.status === 409) {
-				return alert(data.error); // "Email already used"
-			}
-			return alert(data.error || "Something went wrong");
+			const error = await res.json(); // on récupère le message JSON
+			alert(error.message || "An error occurred");
+			return;
 		}
+
+		// ----- SI OK -----
+		const data = await res.json(); // on récupère la réponse du succès
 
 		alert("✅ Account created successfully!");
 
-		window.location.href = "/index.html";
+		// tu peux stocker des infos non sensibles si tu veux
+		localStorage.setItem("inscription", JSON.stringify(data));
+
+		// redirection vers la page souhaitée
+		window.location.href = "/pages/form/index1.html";
 	} catch (err) {
 		console.error(err);
 		alert("❌ Network error. Try again later.");

@@ -183,7 +183,7 @@ export function appendUserMessageToUI(text) {
 	msgDiv.style.alignSelf = "flex-end";
 	msgDiv.textContent = text;
 	lastText = text;
-	console.log(lastText);
+	// console.log(lastText);
 
 	userResponse.appendChild(msgDiv);
 	userResponse.scrollTop = userResponse.scrollHeight;

@@ -31,13 +31,19 @@ import {
 	saveArguments,
 	clearArguments,
 } from "./utils/apiClient.js";
+import { isAuth } from "./utils/isAuth.js";
 
 // =========================
 // Global variables
 // =========================
 const sessions = loadAllSessions();
 const SESSION_ID = getSessionId();
-// console.log(`All sessions: ${JSON.stringify(sessions, null, 2)}`);
+
+// console.log(isAuth()); // true ou false
+console.log(evaluation.isAuthenticated); // correspond à la même valeur
+
+await isAuth();
+console.log(evaluation.isAuthenticated); // correspond à la même valeur
 
 // =========================
 // Utilities
@@ -141,6 +147,50 @@ let chatMessages = [];
 // Topic
 let topicField = document.querySelector("#topic-field");
 let topicInput = document.querySelector("#topic-input");
+
+let authButtons = document.querySelector("#auth-buttons");
+let userMenu = document.querySelector("#user-menu");
+let userDropdown = document.querySelector("#dropdown");
+
+if (evaluation.isAuthenticated) {
+	// L’utilisateur est connecté
+	authButtons.classList.replace("flex", "hidden"); // cacher "Se connecter"
+	userMenu.classList.remove("hidden"); // afficher le menu utilisateur
+} else {
+	// L’utilisateur n’est pas connecté
+	authButtons.classList.replace("hidden", "flex"); // afficher "Se connecter"
+	userMenu.classList.add("hidden"); // cacher le menu utilisateur
+}
+
+userMenu.addEventListener("click", () => {
+	if (userDropdown.classList.contains("hidden"))
+		userDropdown.classList.replace("hidden", "flex");
+	else userDropdown.classList.replace("flex", "hidden");
+});
+
+let logOut = document.querySelector("#log-out");
+logOut.addEventListener("click", async () => {
+	if (!confirm("Are you sure ? 🥺🖕🏿")) return;
+
+	const req = await fetch("/api/log-out", {
+		method: "DELETE",
+		credentials: "include",
+	});
+
+	// Vérifier si la requête a réussi
+	if (!req.ok) {
+		// récupérer le message d’erreur
+		const errData = await req.json();
+		return alert(errData.message || "Something went wrong");
+	}
+
+	// Lire la réponse JSON si tout est ok
+	const res = await req.json();
+	alert(res.message);
+
+	isAuth();
+	location.reload();
+});
 
 // Tables
 const forListContainer = document.querySelector("#for-list");

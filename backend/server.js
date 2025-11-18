@@ -1,14 +1,152 @@
-// backend is 75% made by AI. Reviewed and corrected by human, -> me <- 😅.
+// backend is 50% made by AI. Reviewed and corrected by human, -> me <- 😅.
 
 import express from "express";
 import cors from "cors";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import dotenv from "dotenv";
+import cookieParser from "cookie-parser";
 
+const saltRounds = 10; // Facteur de coût, peut être ajusté
 const app = express();
+dotenv.config();
 
-app.use(cors({ origin: "http://localhost:5173" }));
+app.use(
+	cors({
+		origin: "http://localhost:5173",
+		credentials: true,
+	})
+);
 app.use(express.json());
+app.use(cookieParser());
 
 let db = {}; // database
+
+function findUser(email) {
+	return db[email];
+}
+
+// _INSCRIPTION_
+app.post("/api/signup", async (req, res) => {
+	const { firstName, lastName, email, password } = req.body;
+
+	// vérifier si l'email existe déjà dans la base
+	if (findUser(email)) {
+		return res.status(409).json({ message: "Email already exists" });
+	}
+
+	// hasher le mot de passe avec bcrypt
+	const hashedPassword = await hashPassword(password);
+
+	// créer un nouvel utilisateur
+	const user = {
+		firstName,
+		lastName,
+		email,
+		password: hashedPassword,
+		createdAt: new Date(),
+	};
+
+	// sauvegarder dans la "db"
+	db[email] = user;
+
+	// ne renvoyer que les infos non sensibles
+	const safeUser = {
+		firstName: user.firstName,
+		lastName: user.lastName,
+		email: user.email,
+		createdAt: user.createdAt,
+	};
+
+	return res.status(201).json(safeUser);
+});
+
+// _Connexion_
+app.post("/api/login", async (req, res) => {
+	const { email, password } = req.body;
+
+	const user = findUser(email);
+	if (!user) {
+		return res.status(404).json({ message: "Email not found.." });
+	}
+
+	const isPasswordValid = await bcrypt.compare(password, user.password); // Ne "dé-hash" pas => hash password pour comparer
+	if (!isPasswordValid) {
+		return res.status(401).json({ message: "Invalid password.." });
+	}
+
+	const payload = {
+		email: user.email,
+		firstName: user.firstName,
+		lastName: user.lastName,
+	};
+
+	const token = jwt.sign(payload, process.env.SECRET_JWT, {
+		expiresIn: process.env.JWT_EXPIRES_IN,
+	});
+
+	// Au lieu de : return res.json({ message: "Login successful", token: token });
+	// Faites ceci :
+	res.cookie("token", token, {
+		httpOnly: true, // Empêche l'accès via JavaScript
+		secure: process.env.NODE_ENV === "production", // N'envoie le cookie que sur HTTPS en production
+		sameSite: "strict", // Protection contre les attaques CSRF
+		maxAge: 1000 * 60 * 60, // 1 heure
+	});
+
+	return res.json({ message: "Login successful" });
+});
+
+app.get("/users", (req, res) => {
+	console.log(req.headers);
+	res.json(db);
+});
+
+app.get("/api/me", (req, res) => {
+	const token = req.cookies.token;
+	if (!token) return res.status(401).json({ message: "Not authenticated" });
+
+	try {
+		const decoded = jwt.verify(token, process.env.SECRET_JWT);
+		res.json({ email: decoded.email });
+	} catch {
+		return res.status(403).json({ message: "Invalid or expired token" });
+	}
+});
+
+// _Déconnexion_
+app.delete("/api/log-out", (req, res) => {
+	res.clearCookie("token", { httpOnly: true, sameSite: "strict" });
+	res.json({ message: "Logged out" });
+});
+
+// Password hash function
+async function hashPassword(plainPassword) {
+	const salt = await bcrypt.genSalt(saltRounds);
+	const hashedPassword = await bcrypt.hash(plainPassword, salt);
+	// console.log("Mot de passe haché :", hashedPassword);
+	return hashedPassword;
+}
+
+// _Middleware_
+function authMiddleware(req, res, next) {
+	// 1 - Store token (stored in a cookie)
+	const token = req.cookies.token;
+	console.log(token);
+	// 2 - If token is not present, return 401 "Unauthorized"
+	if (!token) return res.status(401).json({ message: "No token :(" });
+
+	// 3 - Else we can try to test its compatibility
+	try {
+		// 4 - Store decoded user from token
+		const decoded = jwt.verify(token, process.env.SECRET_JWT);
+		req.user = decoded; // 5 - Link on the concerned user
+		next(); // 6 - Then continue the request
+	} catch {
+		// 7 - If the token is invalid, return 403 "Invalid token"
+		return res.status(403).json({ message: "Invalid token" });
+	}
+}
 
 // Routes for managing arguments
 app.get("/api/arguments", (req, res) => {

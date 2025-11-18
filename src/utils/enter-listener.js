@@ -1,8 +1,8 @@
 // utils/enter-listener.js
 
-import { evaluation } from "./appState";
-import { displayValue } from "./display";
-import { saveAllData } from "../main";
+import { evaluation } from "./appState.js";
+import { displayValue } from "./display.js";
+import { saveAllData } from "../main.js";
 
 export function initEnterListeners() {
 	const forInput = document.getElementById("for-input");

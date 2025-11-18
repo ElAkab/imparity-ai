@@ -1,7 +1,7 @@
 // utils/appState.js
 export let evaluation = {
 	isAuthenticated: false,
-	userEmail: null,
+	user: null,
 	topic: "",
 	pros: [],
 	cons: [],
