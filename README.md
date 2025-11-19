@@ -1,5 +1,3 @@
----
-
 # **Imparity AI**
 
 ## Overview
@@ -65,8 +63,6 @@ The core logic and AI integration with **Gemma 3** are underway. The current foc
 ## Conclusion
 
 This project is a **learning journey** in AI and web development. Beyond improving my **full-stack skills**, it explores the interaction between human input and AI reasoning. There’s also potential for it to evolve into a SaaS product in the future.
-
----
 
 ## License
 
