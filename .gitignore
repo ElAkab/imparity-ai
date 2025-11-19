@@ -31,6 +31,5 @@ outputs/
 *.sln
 *.sw?
 
-# Temporaires
-PLAN.md
+PLAN.md 
 GUIDE_SQLITE.md
