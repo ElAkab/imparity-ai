@@ -22,7 +22,6 @@ Content-Type: application/json
     "password": "Caca45"
 }
 ###
-GET http://localhost:3000/api/me
-
+DELETE  http://localhost:3000/api/log-out
 ###
-DELETE  http://localhost:3000/api/delete
+GET http://localhost:3000/api/me

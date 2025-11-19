@@ -2,10 +2,13 @@
 
 import express from "express";
 import cors from "cors";
+import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
+
+const prisma = new PrismaClient();
 
 const saltRounds = 10; // Facteur de coût, peut être ajusté
 const app = express();
@@ -20,37 +23,32 @@ app.use(
 app.use(express.json());
 app.use(cookieParser());
 
-let db = {}; // database
-
-function findUser(email) {
-	return db[email];
-}
-
 // _INSCRIPTION_
 app.post("/api/signup", async (req, res) => {
 	const { firstName, lastName, email, password } = req.body;
 
-	// vérifier si l'email existe déjà dans la base
-	if (findUser(email)) {
-		return res.status(409).json({ message: "Email already exists" });
-	}
+	// ÉTAPE 1: vérifier si l'email existe déjà avec Prisma
+	const existingUser = await prisma.user.findUnique({
+		where: { email: email },
+	});
+	if (existingUser)
+		return res.status(409).json({ message: "Email already used" }); // code 409 = Conflict
 
-	// hasher le mot de passe avec bcrypt
+	// ÉTAPE 2: hasher le mot de passe
 	const hashedPassword = await hashPassword(password);
 
-	// créer un nouvel utilisateur
-	const user = {
-		firstName,
-		lastName,
-		email,
-		password: hashedPassword,
-		createdAt: new Date(),
-	};
+	// ÉTAPE 3: créer un nouvel utilisateur dans la base de données avec Prisma
+	const user = await prisma.user.create({
+		data: {
+			firstName,
+			lastName,
+			email,
+			password: hashedPassword,
+			createdAt: new Date(),
+		},
+	});
 
-	// sauvegarder dans la "db"
-	db[email] = user;
-
-	// ne renvoyer que les infos non sensibles
+	// ÉTAPE 4: renvoyer une réponse (ne renvoie jamais le mot de passe)
 	const safeUser = {
 		firstName: user.firstName,
 		lastName: user.lastName,
@@ -65,20 +63,29 @@ app.post("/api/signup", async (req, res) => {
 app.post("/api/login", async (req, res) => {
 	const { email, password } = req.body;
 
-	const user = findUser(email);
-	if (!user) {
-		return res.status(404).json({ message: "Email not found.." });
-	}
+	// ÉTAPE 1: trouver l'utilisateur dans la DB avec Prisma
+	const user = await prisma.user.findUnique({
+		where: { email: email },
+	});
 
-	const isPasswordValid = await bcrypt.compare(password, user.password); // Ne "dé-hash" pas => hash password pour comparer
-	if (!isPasswordValid) {
-		return res.status(401).json({ message: "Invalid password.." });
+	// _BEFORE_ (only bcrypt())
+	// const isPasswordValid = await bcrypt.compare(password, user.password); // Ne "dé-hash" pas => hash password pour comparer
+	// if (!isPasswordValid) {
+	// 	return res.status(401).json({ message: "Invalid password.." });
+	// }
+
+	// _NOW_ (with bcrypt() + Prisma)
+	// Si aucun utilisateur n'est trouvé, ou si le mot de passe est invalide
+	if (!user || !(await bcrypt.compare(password, user.password))) {
+		return res.status(401).json({ message: "Invalid email or password" });
 	}
 
 	const payload = {
+		userId: user.id,
 		email: user.email,
 		firstName: user.firstName,
 		lastName: user.lastName,
+		role: user.role,
 	};
 
 	const token = jwt.sign(payload, process.env.SECRET_JWT, {
@@ -97,9 +104,22 @@ app.post("/api/login", async (req, res) => {
 	return res.json({ message: "Login successful" });
 });
 
-app.get("/users", (req, res) => {
-	console.log(req.headers);
-	res.json(db);
+app.get("/users", async (req, res) => {
+	// On demande à Prisma tous les utilisateurs
+	const users = await prisma.user.findMany({
+		// On sélectionne seulement les champs qu'on veut montrer
+		// pour ne jamais exposer les mots de passe hashés !
+		select: {
+			id: true,
+			email: true,
+			firstName: true,
+			lastName: true,
+			createdAt: true,
+			role: true,
+		},
+	});
+
+	res.json(users);
 });
 
 app.get("/api/me", (req, res) => {

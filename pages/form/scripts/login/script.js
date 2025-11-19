@@ -91,7 +91,6 @@ submitBtn.addEventListener("click", async (e) => {
 		});
 
 		const data = await res.json();
-		localStorage.setItem("token", JSON.stringify(data));
 		isAuth();
 
 		if (!res.ok) {
@@ -103,9 +102,6 @@ submitBtn.addEventListener("click", async (e) => {
 			}
 			return alert(data.message || "Something went wrong");
 		}
-
-		// Sauvegarder le token dans localStorage | localStorage.getItem("authToken")
-		// localStorage.setItem("authToken", data.token);
 
 		alert("✅ Connected!");
 

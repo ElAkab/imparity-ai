@@ -40,10 +40,9 @@ const sessions = loadAllSessions();
 const SESSION_ID = getSessionId();
 
 // console.log(isAuth()); // true ou false
-console.log(evaluation.isAuthenticated); // correspond à la même valeur
 
 await isAuth();
-console.log(evaluation.isAuthenticated); // correspond à la même valeur
+console.log(evaluation.isAuthenticated);
 
 // =========================
 // Utilities
@@ -309,12 +308,12 @@ document.getElementById("new-chat-btn")?.addEventListener("click", () => {
 	console.log("New session created : ", sessionId);
 });
 
-document.getElementById("clear-btn")?.addEventListener("click", () => {
+document.getElementById("clear-btn")?.addEventListener("click", async () => {
 	if (!confirm("Are you sure you want to delete all session?")) return;
 
 	clearSessionData(); // Clear all localStorage
 	clear(); // Clear évaluation + UI
-	renderHistory();
+	await renderHistory();
 
 	imgElement.classList.remove("invisible");
 });

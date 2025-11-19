@@ -30,3 +30,7 @@ outputs/
 *.njsproj
 *.sln
 *.sw?
+
+# Temporaires
+PLAN.md
+GUIDE_SQLITE.md

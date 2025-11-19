@@ -17,6 +17,7 @@ import {
 import { evaluation } from "./appState.js"; // <- we will mutate this object
 import { loadArguments } from "./apiClient.js";
 import { saveAllData, updateChatUI } from "../main.js";
+import { isAuth } from "./isAuth.js";
 
 // ========================
 // Load all sessions from localStorage
@@ -28,7 +29,7 @@ export function loadAllSessions() {
 // ========================
 // Save current session to localStorage
 // ========================
-export function saveSession(topic, pros, cons, followUp, messages) {
+export async function saveSession(topic, pros, cons, followUp, messages) {
 	if (!evaluation.isAuthenticated) return;
 	const sessions = loadAllSessions();
 	const sessionId = getSessionId();
@@ -43,10 +44,13 @@ export function saveSession(topic, pros, cons, followUp, messages) {
 	};
 
 	localStorage.setItem("sessions", JSON.stringify(sessions));
-	renderHistory();
+	await renderHistory();
 }
 
-export function renderHistory() {
+export async function renderHistory() {
+	await isAuth();
+	console.log(evaluation.isAuthenticated); // "undefined" je sais pas pourquoi
+
 	const historyField = document.getElementById("history-field");
 	if (!evaluation.isAuthenticated) {
 		historyField.innerHTML = `
@@ -73,7 +77,7 @@ export function renderHistory() {
 	if (!historyList) return;
 
 	const sessions = loadAllSessions();
-	if (!sessions) return;
+	// if (!sessions) return;
 
 	historyList.innerHTML = "";
 
@@ -134,7 +138,7 @@ export function renderHistory() {
 
 		// Deletion management
 		const deleteBtn = dropdown.querySelector(".dropdown-delete");
-		deleteBtn.addEventListener("click", (e) => {
+		deleteBtn.addEventListener("click", async (e) => {
 			e.stopPropagation();
 
 			const sessions = loadAllSessions();
@@ -153,7 +157,7 @@ export function renderHistory() {
 				Object.keys(evaluation).forEach((key) => delete evaluation[key]);
 			}
 
-			renderHistory();
+			await renderHistory();
 			// closeDropdown(dropdown);
 		});
 
