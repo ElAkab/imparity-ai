@@ -1,81 +1,75 @@
+---
+
 # **Imparity AI**
 
-## Project Overview
+## Overview
 
-Let me present to you the **Imparity AI** app😎. An application where you can **weigh the pros and cons** of any topic using **artificial intelligence**. _There’s no better way than AI to assess arguments fairly and reach an intelligent, just, and impartial conclusion._
-The goal is to produce a **balanced analysis** and an **objective conclusion**, based on an AI model capable of examining both sides of an argument before summarizing the reasoning.
+**Imparity AI** is an app that helps you **weigh the pros and cons** of any topic using **artificial intelligence**. By analyzing arguments from both sides, it delivers a **balanced and impartial conclusion**.
 
-The interface allows users to:
+With the interface, you can:
 
-* Enter a **topic or question**,
-* Add **pros and cons** arguments,
-* Run an **AI analysis** to generate a neutral, well-reasoned conclusion.
+* Enter a **topic or question**
+* Add **pros and cons** arguments
+* Run an **AI-powered analysis** for a neutral, reasoned summary
 
 ---
 
-## Learning Goal
+## Learning Goals
 
-As a **developer eager to learn**, I created this project to experiment with bringing AI into web applications, 
-a way to **understand how to connect an AI model with a web interface** and make them communicate effectively.
+This project started as a **developer experiment** to explore how AI can be integrated into web applications. It’s a hands-on way to understand:
 
-Through this project, I’m exploring:
-
-* Front-end and back-end logic,
-* API communication with an AI model,
-* The structure of a small but complete web project.
+* Front-end and back-end logic
+* API communication with an AI model
+* Structuring a small but complete web project
 
 ---
 
 ## Technologies Used
 
-| Type                | Tool / Technology                                                      |
-| ------------------- | ---------------------------------------------------------------------- |
-| **AI / LLM**        | [Ollama](https://ollama.ai/) with **Gemma 3** model                    |
-| **Front-end**       | HTML, TailwindCSS v4.1, JavaScript                                     |
-| **Back-end**        | Node.js / Express                                                      |
-| **API**             | Local AI integration via Ollama                                        |
-| **Version Control** | Git & GitHub                                                           |
+| Type                | Tool / Technology                                   |
+| ------------------- | --------------------------------------------------- |
+| **AI / LLM**        | [Ollama](https://ollama.ai/) with **Gemma 3** model |
+| **Front-end**       | HTML, TailwindCSS v4.1, JavaScript                  |
+| **Back-end**        | Node.js / Express                                   |
+| **API**             | Local AI integration via Ollama                     |
+| **Version Control** | Git & GitHub                                        |
 
 ---
 
 ## How It Works
 
-1. The user enters a **topic** or question.
-2. They add arguments **for** and **against**.
-3. The system sends this data to the AI model through Ollama.
-4. The AI processes and analyzes the arguments, reformulates them, and produces a balanced summary and conclusion.
+1. Enter a **topic or question**
+2. Add arguments **for** and **against**
+3. The AI model analyzes and reformulates the arguments via Ollama
+4. Receive a **balanced summary and conclusion**
 
 ---
 
 ## Project Status
 
 🔧 **Work in progress**
-The project is currently in development. I’ve started experimenting with **Ollama** and the **Gemma 3** model, but the full interface and logic are still under construction.
-
-The short-term goal is to create a **Minimum Viable Product (MVP)** before refining the design and improving user experience.
+The core logic and AI integration with **Gemma 3** are underway. The current focus is to develop a **Minimum Viable Product (MVP)** before refining the UI and user experience.
 
 ---
 
 ## Next Steps
 
 * [ ] Improve prompt handling for better AI responses
-* [ ] Design a more intuitive and user-friendly interface
-* [ ] Add a feature to save and review past analyses
-* [ ] Allow comparisons between multiple topics
+* [ ] Design a more intuitive interface
+* [ ] Save and review past analyses
+* [ ] Compare multiple topics
 * [ ] Experiment with other AI models for reasoning differences
 
 ---
 
 ## Conclusion
 
-This project is primarily a learning journey exploring how AI can be integrated into web applications.
-However, I also see potential for it to evolve into a SaaS product in the future.
-Even if the code is not perfect yet, it’s helping me **understand the relationship between human input and AI reasoning**, while growing my **full-stack development skills**.
+This project is a **learning journey** in AI and web development. Beyond improving my **full-stack skills**, it explores the interaction between human input and AI reasoning. There’s also potential for it to evolve into a SaaS product in the future.
 
 ---
 
 ## License
 
-🪪 MIT License (feel free to adjust as needed)
+🪪 MIT License
 
 ---
