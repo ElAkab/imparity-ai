@@ -1,17 +1,17 @@
 // utils/chat.js
 
 // =========================
-// Module chat IA avec stockage correct | user-response |
+// Module chat IA avec stockage correct
 // =========================
 import { saveAllData } from "../main";
 import { evaluation } from "./appState.js";
-import { loadAllSessions } from "./history.js";
+import { getSessions } from "./history.js";
 import { getSessionId } from "./session.js";
 import { loadModal } from "./load-modal.js";
 
 export function getActiveSession() {
 	return {
-		sessions: loadAllSessions(),
+		sessions: getSessions,
 		sessionId: getSessionId(),
 	};
 }
@@ -22,8 +22,6 @@ let isStreaming = false;
 // Analyser avec streaming
 // =========================
 export async function analyzeWithStream(allEvaluation, bubbleContext) {
-	const { sessions, sessionId } = getActiveSession();
-
 	const aiInput = document.getElementById("ai-input");
 	const aiSendBtn = document.getElementById("ai-send-btn");
 
@@ -83,22 +81,6 @@ export async function analyzeWithStream(allEvaluation, bubbleContext) {
 
 					if (!evaluation.messages) evaluation.messages = [];
 					evaluation.messages.push(assistantMsg);
-
-					if (!sessions[sessionId]) {
-						sessions[sessionId] = {
-							topic: evaluation.topic || "",
-							pros: evaluation.pros || [],
-							cons: evaluation.cons || [],
-							followUp: evaluation.followUp || [],
-							messages: [],
-							savedAt: Date.now(),
-						};
-					}
-
-					sessions[sessionId].messages = structuredClone(evaluation.messages);
-
-					localStorage.setItem("sessions", JSON.stringify(sessions));
-					localStorage.setItem("evaluation", JSON.stringify(evaluation));
 
 					if (typing?.parentElement) typing.remove();
 
@@ -198,24 +180,6 @@ export function appendUserMessageToUI(text) {
 	if (!lastMsg || lastMsg.content !== text || lastMsg.role !== "user") {
 		evaluation.messages.push(userMsgObj);
 	}
-
-	const { sessions, sessionId } = getActiveSession();
-
-	// Save in session
-	if (!sessions[sessionId]) {
-		sessions[sessionId] = {
-			topic: evaluation.topic || "",
-			pros: evaluation.pros || [],
-			cons: evaluation.cons || [],
-			followUp: evaluation.followUp || [],
-			messages: [],
-			savedAt: Date.now(),
-		};
-	}
-	sessions[sessionId].messages = evaluation.messages.slice();
-
-	localStorage.setItem("sessions", JSON.stringify(sessions));
-	localStorage.setItem("evaluation", JSON.stringify(evaluation));
 
 	if (typeof saveAllData === "function") saveAllData();
 }

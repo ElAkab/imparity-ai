@@ -2,7 +2,7 @@
 
 import { evaluation } from "./appState.js";
 import { displayValue } from "./display.js";
-import { saveAllData } from "../main.js";
+// import { saveAllData } from "../main.js";
 
 export function initEnterListeners() {
 	const forInput = document.getElementById("for-input");
@@ -35,7 +35,7 @@ export function initEnterListeners() {
 
 		input.value = "";
 		input.focus();
-		saveAllData();
+		// saveAllData();
 	}
 
 	if (forInput) {

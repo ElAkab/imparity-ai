@@ -1,58 +1,49 @@
 // utils/history.js
 
 import { createIcons, icons } from "lucide";
-import { newHTML } from "./clear-html.js";
-import { getSessionId } from "./session.js";
+import { evaluation } from "./appState.js";
+import { saveAllData } from "../main";
 import {
 	displayValue,
 	handleTopicInput,
 	updateAskBtnState,
 } from "./display.js";
-import {
-	getActiveSession,
-	createAssistantBubble,
-	formatText,
-	appendUserMessageToUI,
-} from "./chat.js";
-import { evaluation } from "./appState.js"; // <- we will mutate this object
-import { loadArguments } from "./apiClient.js";
-import { saveAllData, updateChatUI } from "../main.js";
+import { appendUserMessageToUI, formatText } from "./chat.js";
+import * as apiClient from "./apiClient.js"; // <- On importe tout
 import { isAuth } from "./isAuth.js";
+import { newHTML } from "./clear-html.js";
+import { getSessionId } from "./session.js";
 
-// ========================
-// Load all sessions from localStorage
-// ========================
-export function loadAllSessions() {
-	return JSON.parse(localStorage.getItem("sessions") || "{}");
-}
+let sessionsCache = {};
 
-// ========================
-// Save current session to localStorage
-// ========================
-export async function saveSession(topic, pros, cons, followUp, messages) {
+// Synchronise le cache local avec les données du backend.
+export async function syncSessionsWithBackend() {
 	if (!evaluation.isAuthenticated) return;
-	const sessions = loadAllSessions();
-	const sessionId = getSessionId();
 
-	sessions[sessionId] = {
-		topic,
-		pros,
-		cons,
-		followUp,
-		messages,
-		savedAt: Date.now(),
-	};
+	try {
+		const sessionsFromServer = await apiClient.loadSessions();
+		sessionsCache = sessionsFromServer.reduce((acc, session) => {
+			acc[session.id] = session;
+			return acc;
+		}, {});
 
-	localStorage.setItem("sessions", JSON.stringify(sessions));
-	await renderHistory();
+		// Using the localStorage for the offline mode
+		localStorage.setItem("sessions", JSON.stringify(sessionsCache));
+	} catch (error) {
+		console.error("Failed to sync sessions with backend :", error);
+		sessionsCache = JSON.parse(localStorage.getItem("sessions") || {});
+	}
+}
+// Récupère les sessions depuis le cache.
+export function getSessions() {
+	return sessionsCache;
 }
 
 export async function renderHistory() {
 	await isAuth();
-	console.log(evaluation.isAuthenticated); // "undefined" je sais pas pourquoi
 
-	const historyField = document.getElementById("history-field");
 	if (!evaluation.isAuthenticated) {
+		const historyField = document.getElementById("history-field");
 		historyField.innerHTML = `
 			<span class="mb-3 font-light">History ?</span>
 			<a
@@ -73,11 +64,15 @@ export async function renderHistory() {
 		return;
 	}
 
+	const sendAiBtn = document.getElementById("ai-send-btn");
+	if (sendAiBtn.classList.contains("opacity-50", "pointer-events-none")) {
+		sendAiBtn.classList.remove("opacity-50", "pointer-events-none");
+	}
+
 	const historyList = document.getElementById("history-list");
 	if (!historyList) return;
 
-	const sessions = loadAllSessions();
-	// if (!sessions) return;
+	const sessions = getSessions(); // <-- Cache
 
 	historyList.innerHTML = "";
 
@@ -140,25 +135,15 @@ export async function renderHistory() {
 		const deleteBtn = dropdown.querySelector(".dropdown-delete");
 		deleteBtn.addEventListener("click", async (e) => {
 			e.stopPropagation();
+			if (!confirm(`Are you sure about that MDFK ?`)) return;
 
-			const sessions = loadAllSessions();
-			const titlesRaw = localStorage.getItem("titleSessions") || "{}";
-			const titles = JSON.parse(titlesRaw);
-
-			delete sessions[id];
-			delete titles[id];
-
-			localStorage.setItem("sessions", JSON.stringify(sessions));
-			localStorage.setItem("titleSessions", JSON.stringify(titles));
-
-			// If the deleted session was active : reset
-			if (id === localStorage.getItem("sessionId")) {
-				localStorage.removeItem("sessionId");
-				Object.keys(evaluation).forEach((key) => delete evaluation[key]);
+			try {
+				await apiClient.deleteSession(id); // 1 - Delete on the server
+				await syncSessionsWithBackend(); // 2 - Synchronize the cache with the server
+				await renderHistory(); // 3 - Load the history display
+			} catch (error) {
+				console.error("Failed to delete session :", error);
 			}
-
-			await renderHistory();
-			// closeDropdown(dropdown);
 		});
 
 		// Function to open/close the menu
@@ -193,13 +178,10 @@ export async function renderHistory() {
 		li.appendChild(dropdown);
 		historyList.appendChild(li);
 
-		// const currentId = localStorage.getItem("sessionId");
+		const sessionId = getSessionId();
 
-		const { sessions, sessionId } = getActiveSession();
-
-		if (id === sessionId) {
+		if (id === sessionId && sessions[id])
 			li.classList.add("border-4", "ring-indigo-600");
-		}
 	});
 
 	createIcons({ icons });
@@ -229,7 +211,9 @@ function closeDropdown(dropdown) {
 }
 
 export function loadSession(sessionId) {
-	const sessions = loadAllSessions();
+	isAuth();
+
+	const sessions = getSessions(); // <-- Cache
 	const session = sessions[sessionId];
 	if (!session) return;
 
@@ -261,6 +245,7 @@ export function loadSession(sessionId) {
 	// Build a fresh evaluation object
 	// ======================
 	const newEvaluation = {
+		id: sessionId,
 		topic: session.topic || "",
 		pros: (session.pros || []).map((p) =>
 			typeof p === "string" ? { id: Date.now() + Math.random(), text: p } : p
@@ -278,8 +263,6 @@ export function loadSession(sessionId) {
 	// Muter l'objet existant au lieu de réassigner
 	Object.keys(evaluation).forEach((key) => delete evaluation[key]);
 	Object.assign(evaluation, newEvaluation);
-
-	updateAskBtnState();
 
 	// Save to localStorage
 	localStorage.setItem("sessionId", sessionId);
@@ -330,7 +313,6 @@ export function loadSession(sessionId) {
 		topicField?.classList.remove("opacity-50", "pointer-events-none");
 		forAgainstField?.classList.remove("opacity-50", "pointer-events-none");
 		document.querySelector("#btn-field")?.classList.remove("hidden");
-		updateAskBtnState();
 	}
 
 	// ======================
@@ -342,36 +324,5 @@ export function loadSession(sessionId) {
 
 	// Dispatch event to notify session loaded
 	window.dispatchEvent(new Event("sessionLoaded"));
+	renderHistory();
 }
-
-function attachTopicListeners() {
-	const topicInput = document.getElementById("topic-input");
-	const topicBtn = document.getElementById("topic-btn");
-	if (!topicInput || !topicBtn) return;
-
-	topicBtn.addEventListener("click", () => {
-		const topicValue = topicInput.value.trim();
-		if (!topicValue) return;
-		evaluation.topic = topicValue;
-		handleTopicInput(topicValue);
-		document
-			.getElementById("for-against-field")
-			.classList.remove("opacity-50", "pointer-events-none");
-		document
-			.getElementById("new-btn")
-			?.classList.remove("opacity-50", "pointer-events-none");
-		saveAllData();
-		updateAskBtnState();
-	});
-
-	topicInput.addEventListener("keydown", (e) => {
-		if (e.key === "Enter") {
-			e.preventDefault();
-			topicBtn.click();
-		}
-	});
-}
-
-// After replacement of the DOM :
-newHTML();
-attachTopicListeners();

@@ -1,26 +1,44 @@
-GET http://localhost:3000/users
-
-
-###
-
-POST  http://localhost:3000/api/signup
+### Inscription
+POST http://localhost:3000/api/signup
 Content-Type: application/json
 
 {
-    "firstName": "John",
-    "lastName": "Doe",
-    "email": "john@gmail.com",
-    "password": "Caca45"
+  "firstName": "John",
+  "lastName": "Doe",
+  "email": "john@test.com",
+  "password": "azerty123"
 }
 
-###
-POST  http://localhost:3000/api/login
+### Connexion
+POST http://localhost:3000/api/login
 Content-Type: application/json
 
 {
-    "email": "john@gmail.com",
-    "password": "Caca45"
+  "email": "john@test.com",
+  "password": "azerty123"
 }
+
+### Ajouter une session/arguments
+POST http://localhost:3000/api/arguments
+Content-Type: application/json
+Cookie: token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoiam9obkB0ZXN0LmNvbSIsImZpcnN0TmFtZSI6IkpvaG4iLCJsYXN0TmFtZSI6IkRvZSIsInJvbGUiOiJVU0VSIiwiaWF0IjoxNzYzNTc4Nzg1LCJleHAiOjE3NjM1ODIzODV9.hSOUQ7woG-sQ2TMRzjARFXHBGRLcIUg2iumwyXz2Jm8
+
+{
+  "topic": "Manger",
+  "pros": [{"text": "J'ai faim"}, {"text": "La nourriture devant moi, à l'air bonne"}],
+  "cons": [{"text": "J'ai mal à la gorge"}],
+  "followUp": [],
+  "messages": []
+}
+
+### Lister mes sessions
+GET http://localhost:3000/api/arguments
+Cookie: token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoiam9obkB0ZXN0LmNvbSIsImZpcnN0TmFtZSI6IkpvaG4iLCJsYXN0TmFtZSI6IkRvZSIsInJvbGUiOiJVU0VSIiwiaWF0IjoxNzYzNTc4Nzg1LCJleHAiOjE3NjM1ODIzODV9.hSOUQ7woG-sQ2TMRzjARFXHBGRLcIUg2iumwyXz2Jm8
+
+### Supprimer une session
+DELETE http://localhost:3000/api/arguments
+Cookie: token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoiam9obkB0ZXN0LmNvbSIsImZpcnN0TmFtZSI6IkpvaG4iLCJsYXN0TmFtZSI6IkRvZSIsInJvbGUiOiJVU0VSIiwiaWF0IjoxNzYzNTc4Nzg1LCJleHAiOjE3NjM1ODIzODV9.hSOUQ7woG-sQ2TMRzjARFXHBGRLcIUg2iumwyXz2Jm8
+
 ###
 DELETE  http://localhost:3000/api/log-out
 ###

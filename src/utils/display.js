@@ -3,8 +3,6 @@
 import { createIcons, icons } from "lucide";
 import { saveAllData } from "../main.js";
 import { evaluation } from "./appState.js";
-import { loadAllSessions } from "./history.js";
-import { getSessionId } from "./session.js";
 import { initEnterListeners } from "./enter-listener.js";
 
 // =========================
@@ -194,12 +192,7 @@ export function displayValue(item, container, type) {
 			finished = true;
 			if (!element.contains(input)) return;
 
-			const sessionid = getSessionId();
-			const sessions = loadAllSessions();
-			const session = sessions[sessionid];
-
 			const evalArr = type === "pros" ? evaluation.pros : evaluation.cons;
-			const sessionArr = type === "pros" ? session.pros : session.cons;
 
 			const index = evalArr.findIndex((el) => el.id === item.id);
 
@@ -209,7 +202,6 @@ export function displayValue(item, container, type) {
 				element.remove();
 				if (index > -1) {
 					evalArr.splice(index, 1);
-					sessionArr.splice(index, 1);
 				}
 				saveAllData();
 				updateAskBtnState();
@@ -220,12 +212,7 @@ export function displayValue(item, container, type) {
 
 			if (index > -1) {
 				evalArr[index].text = input.value;
-				sessionArr[index].text = input.value;
 			}
-
-			// Save to localStorage after editing
-			sessions[sessionid] = session;
-			localStorage.setItem("sessions", JSON.stringify(sessions));
 
 			item.text = input.value;
 			saveAllData();
@@ -243,25 +230,13 @@ export function displayValue(item, container, type) {
 	deleteIcon.addEventListener("click", () => {
 		element.remove();
 
-		const sessionId = getSessionId();
-		const sessions = loadAllSessions();
-		const session = sessions[sessionId];
-
-		if (!session) return;
-
 		const evalArr = type === "pros" ? evaluation.pros : evaluation.cons;
-		const sessionArr = type === "pros" ? session.pros : session.cons;
 
 		const index = evalArr.findIndex((el) => el.id === item.id);
 
 		if (index > -1) {
 			evalArr.splice(index, 1);
-			sessionArr.splice(index, 1);
 		}
-
-		// Save to localStorage after editing
-		sessions[sessionId] = session;
-		localStorage.setItem("sessions", JSON.stringify(sessions));
 
 		saveAllData();
 		updateAskBtnState();

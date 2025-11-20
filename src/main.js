@@ -10,10 +10,10 @@ import {
 	clearSessionData,
 } from "./utils/session.js";
 import {
-	loadAllSessions,
+	syncSessionsWithBackend,
 	renderHistory,
 	loadSession,
-	saveSession,
+	getSessions,
 } from "./utils/history.js";
 import {
 	displayValue,
@@ -26,23 +26,19 @@ import {
 	createAssistantBubble,
 	appendUserMessageToUI,
 } from "./utils/chat.js";
-import {
-	loadArguments,
-	saveArguments,
-	clearArguments,
-} from "./utils/apiClient.js";
+import * as apiClient from "./utils/apiClient.js";
 import { isAuth } from "./utils/isAuth.js";
 
-// =========================
-// Global variables
-// =========================
-const sessions = loadAllSessions();
-const SESSION_ID = getSessionId();
-
-// console.log(isAuth()); // true ou false
+localStorage.removeItem("sessionId");
 
 await isAuth();
-console.log(evaluation.isAuthenticated);
+
+if (evaluation.isAuthenticated) {
+	await syncSessionsWithBackend();
+	await renderHistory();
+} else {
+	await renderHistory();
+}
 
 // =========================
 // Utilities
@@ -78,51 +74,33 @@ export function updateChatUI() {
 }
 
 async function saveAllData() {
-	const topic = evaluation.topic || "";
-	const pros = Array.isArray(evaluation.pros)
-		? evaluation.pros.map((p) => p.text)
-		: [];
-	const cons = Array.isArray(evaluation.cons)
-		? evaluation.cons.map((c) => c.text)
-		: [];
-	const followUp = Array.isArray(evaluation.followUp)
-		? evaluation.followUp.map((f) => f.text || f)
-		: [];
-	const messages = Array.isArray(evaluation.messages)
-		? evaluation.messages
-		: [];
+	isAuth();
+	// Check if connected
+	if (!evaluation.isAuthenticated) return;
 
 	try {
-		await saveArguments(topic, pros, cons, followUp, messages, SESSION_ID);
-		saveSession(
-			topic,
-			evaluation.pros,
-			evaluation.cons,
-			evaluation.followUp,
-			messages
-		);
-	} catch (err) {
-		console.error("Error during backup :", err);
+		const savedSession = await apiClient.saveSession(evaluation);
+		evaluation.id = savedSession.session.id;
+
+		const sessions = getSessions();
+		sessions[savedSession.session.id] = savedSession.session;
+		await renderHistory();
+	} catch (error) {
+		console.error("Failed to save session :", error);
 	}
 }
 
 let askBtn = document.getElementById("ask-btn");
 
 async function clear() {
-	await clearArguments();
-	resetSession(true);
-
-	evaluation.topic = "";
-	evaluation.pros = evaluation.pros || [];
-	evaluation.cons = evaluation.cons || [];
-	evaluation.followUp = evaluation.followUp || [];
-	evaluation.messages = evaluation.messages || [];
-
-	evaluation.topic = "";
-	evaluation.pros = [];
-	evaluation.cons = [];
-	evaluation.followUp = [];
-	evaluation.messages = [];
+	Object.assign(evaluation, {
+		id: undefined, // Let space for a new session
+		topic: "",
+		pros: [],
+		cons: [],
+		followUp: [],
+		messages: [],
+	});
 
 	newHTML();
 	document.getElementById("topic-field").innerHTML = `
@@ -135,11 +113,12 @@ async function clear() {
 
 	if (!modalMenu.classList.contains("-translate-x-6/6"))
 		modalMenu.classList.add("-translate-x-6/6");
+
+	localStorage.removeItem("sessionId");
+	renderHistory();
 }
 
 createIcons({ icons });
-
-renderHistory(renderArguments, renderMessages);
 
 let chatMessages = [];
 
@@ -191,10 +170,6 @@ logOut.addEventListener("click", async () => {
 	location.reload();
 });
 
-// Tables
-const forListContainer = document.querySelector("#for-list");
-const againstListContainer = document.querySelector("#against-list");
-
 const hammerIcon = document.querySelector("#ask-btn img");
 
 // =========================
@@ -221,7 +196,7 @@ function attachTopicBtnListener() {
 			.getElementById("new-btn")
 			.classList.remove("opacity-50", "pointer-events-none");
 
-		saveAllData();
+		// saveAllData();
 		updateAskBtnState();
 	});
 
@@ -234,24 +209,6 @@ function attachTopicBtnListener() {
 }
 
 attachTopicBtnListener();
-
-// =========================
-// History helpers
-// =========================
-function renderArguments(pros, cons) {
-	forListContainer = document.getElementById("for-list");
-	againstListContainer = document.getElementById("against-list");
-	forListContainer.innerHTML = "";
-	againstListContainer.innerHTML = "";
-
-	pros.forEach((p) => displayValue(p, forListContainer, "pros"));
-	cons.forEach((c) => displayValue(c, againstListContainer, "cons"));
-}
-
-function renderMessages(messages) {
-	evaluation.messages = messages || [];
-	updateChatUI();
-}
 
 // | Menu button / menu | init
 let menuBtn = document.querySelector("#menu-btn");
@@ -287,35 +244,21 @@ closeMenuBtn.addEventListener("click", () => {
 });
 
 document.getElementById("new-chat-btn")?.addEventListener("click", () => {
-	const allSessions = loadAllSessions();
-	const sessionId = getSessionId();
-	const currentSession = allSessions[sessionId];
-	if (currentSession.topic === "") return;
-
-	evaluation.topic = "";
-	evaluation.pros = [];
-	evaluation.cons = [];
-	evaluation.followUp = [];
-	evaluation.messages = [];
-
-	if (topicField.classList.contains("opacity-50", "pointer-events-none"))
-		topicField.classList.remove("opacity-50", "pointer-events-none");
-
 	clear();
-
-	import("./utils/history.js").then((mod) => mod.renderHistory());
-
-	console.log("New session created : ", sessionId);
 });
 
 document.getElementById("clear-btn")?.addEventListener("click", async () => {
 	if (!confirm("Are you sure you want to delete all session?")) return;
 
-	clearSessionData(); // Clear all localStorage
-	clear(); // Clear évaluation + UI
-	await renderHistory();
-
-	imgElement.classList.remove("invisible");
+	try {
+		await apiClient.clearAllSessions(); // API call
+		await syncSessionsWithBackend(); // Re synchronize (the cache will be emptied)
+		await renderHistory();
+		clear();
+		imgElement.classList.remove("invisible");
+	} catch (error) {
+		console.error("Failed to clear all sessions :", error);
+	}
 });
 
 const againstBtn = document.querySelector("#against-btn");

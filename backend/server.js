@@ -104,7 +104,7 @@ app.post("/api/login", async (req, res) => {
 	return res.json({ message: "Login successful" });
 });
 
-app.get("/users", async (req, res) => {
+app.get("/users", authMiddleware, async (req, res) => {
 	// On demande à Prisma tous les utilisateurs
 	const users = await prisma.user.findMany({
 		// On sélectionne seulement les champs qu'on veut montrer
@@ -149,10 +149,11 @@ async function hashPassword(plainPassword) {
 }
 
 // _Middleware_
-function authMiddleware(req, res, next) {
+async function authMiddleware(req, res, next) {
 	// 1 - Store token (stored in a cookie)
 	const token = req.cookies.token;
 	console.log(token);
+
 	// 2 - If token is not present, return 401 "Unauthorized"
 	if (!token) return res.status(401).json({ message: "No token :(" });
 
@@ -160,50 +161,124 @@ function authMiddleware(req, res, next) {
 	try {
 		// 4 - Store decoded user from token
 		const decoded = jwt.verify(token, process.env.SECRET_JWT);
-		req.user = decoded; // 5 - Link on the concerned user
-		next(); // 6 - Then continue the request
+
+		const user = await prisma.user.findUnique({
+			where: { id: decoded.userId },
+		});
+		if (!user) {
+			return res.status(404).json({ message: "User not found" });
+		}
+		req.user = user; // On attache l'objet user entier !
+		next();
 	} catch {
 		// 7 - If the token is invalid, return 403 "Invalid token"
 		return res.status(403).json({ message: "Invalid token" });
 	}
 }
 
+// Role checker
+function checkRole(roleRequired) {
+	return (req, res, next) => {
+		if (req.user && req.user.role === roleRequired) {
+			next(); // L'utilisateur a le bon rôle, on continue
+		} else {
+			res.status(403).json({ message: "Forbidden: Premium access required." });
+		}
+	};
+}
+
 // Routes for managing arguments
-app.get("/api/arguments", (req, res) => {
-	const defaultSession = db["default"] || {
-		topic: "",
-		pros: [],
-		cons: [],
-		followUp: [],
-		messages: [],
-	};
-	res.json(defaultSession);
+app.get("/api/arguments", authMiddleware, async (req, res) => {
+	const sessions = await prisma.session.findMany({
+		where: { userId: req.user.id },
+		orderBy: { createdAt: "desc" },
+	});
+
+	res.json(sessions);
 });
 
-app.post("/api/arguments", (req, res) => {
-	const { sessionId, topic, pros, cons, followUp, messages } = req.body;
-	if (!sessionId) return res.status(400).json({ error: "Session manquante" });
+app.post("/api/arguments", authMiddleware, async (req, res) => {
+	const { topic, pros, cons, followUp, messages } = req.body;
+	if (!topic) return res.status(400).json({ error: "No topic :/" });
 
-	db[sessionId] = {
-		topic,
-		pros: Array.isArray(pros) ? pros : [],
-		cons: Array.isArray(cons) ? cons : [],
-		followUp: Array.isArray(followUp) ? followUp : [],
-		messages: Array.isArray(messages) ? messages : [],
-	};
-
-	res.json({ success: true, db: db[sessionId] });
+	const session = await prisma.session.create({
+		data: {
+			topic,
+			pros: Array.isArray(pros) ? pros.map((p) => p.text || p) : [],
+			cons: Array.isArray(cons) ? cons.map((c) => c.text || c) : [],
+			followUp: Array.isArray(followUp) ? followUp.map((f) => f.text || f) : [],
+			messages: Array.isArray(messages) ? messages.map((m) => m.text || m) : [],
+			userId: req.user.id, // récupéré via authMiddleware
+		},
+	});
+	res.json({ success: true, session });
 });
 
-app.delete("/api/arguments", (req, res) => {
-	db = {
-		topic: "",
-		pros: [],
-		cons: [],
-		followUp: [],
-		messages: [],
-	};
-	res.json({ message: "Arguments reset successfully." });
+// Routes for updating arguments
+app.put("/api/arguments/:id", authMiddleware, async (req, res) => {
+	const { id } = req.params;
+	const { topic, pros, cons, followUp, messages } = req.body;
+
+	try {
+		const session = await prisma.session.update({
+			where: {
+				id: id,
+				userId: req.user.id, // We verify that the session belongs to the user
+			},
+			data: {
+				topic,
+				pros: Array.isArray(pros) ? pros.map((p) => p.text || p) : [],
+				cons: Array.isArray(cons) ? cons.map((c) => c.text || c) : [],
+				followUp: Array.isArray(followUp)
+					? followUp.map((f) => f.text || f)
+					: [],
+				messages: Array.isArray(messages)
+					? messages.map((m) => m.text || m)
+					: [],
+			},
+		});
+
+		res.json({ success: true, session });
+	} catch (error) {
+		// Prisma will send an error if the registration not found
+		res.status(404).json({
+			success: false,
+			message: "Session not found or you don't have permission to update it.",
+		});
+	}
+});
+
+// Routes to delete arguments
+app.delete("/api/arguments/:id", authMiddleware, async (req, res) => {
+	const { id } = req.params;
+
+	try {
+		await prisma.session.delete({
+			where: {
+				id: id,
+				userId: req.user.id, // We verify that the session belongs to the user
+			},
+		});
+
+		res.json({ message: "Arguments reset successfully." });
+	} catch (error) {
+		res.status(404).json({
+			success: false,
+			message: "Session not found or you don't have permission to delete it.",
+		});
+	}
+});
+
+// Routes to delete arguments
+// Routes to delete arguments
+app.delete("/api/arguments", authMiddleware, async (req, res) => {
+	await prisma.session.deleteMany({
+		where: {
+			userId: req.user.id,
+		},
+	});
+
+	res.json({ message: "All arguments reset successfully." });
 });
 
 // Route for analyzing with streaming response

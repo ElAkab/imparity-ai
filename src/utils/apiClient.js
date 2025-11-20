@@ -1,41 +1,84 @@
 // utils/apiClient.js
 import { evaluation } from "./appState.js";
-// =========================
-// Load arguments from backend API
-// =========================
 
-export async function loadArguments() {
-	const res =
-		(await fetch("http://localhost:3000/api/arguments")) || evaluation;
-	return await res.json();
-}
-
-export async function saveArguments(
-	topic,
-	pros,
-	cons,
-	followUp,
-	messages,
-	sessionId
-) {
-	const res = await fetch("http://localhost:3000/api/arguments", {
-		method: "POST",
-		headers: { "Content-Type": "application/json" },
-		body: JSON.stringify({
-			sessionId,
-			topic,
-			pros,
-			cons,
-			followUp,
-			messages,
-		}),
+// ======================
+// Load Sessions
+// ======================
+export async function loadSessions() {
+	const response = await fetch("/api/arguments", {
+		headers: {
+			"Content-Type": "application/json",
+		},
 	});
-	return res.json();
+
+	if (!response.ok) {
+		console.log("No sessions here (°_°)/)");
+		throw new Error("Failed to load sessions.");
+	}
+
+	// Lire le JSON UNE SEULE FOIS
+	const data = await response.json();
+	// console.log(data); // <-- si tu veux l'afficher, ok
+	return data;
 }
 
-export async function clearArguments() {
-	const res = await fetch("http://localhost:3000/api/arguments", {
+// ======================
+// Save Session (POST / PUT)
+// ======================
+export async function saveSession(sessionData) {
+	const { id, ...data } = sessionData;
+	const isUpdating = id !== undefined;
+
+	const url = isUpdating ? `/api/arguments/${id}` : "/api/arguments";
+	const method = isUpdating ? "PUT" : "POST";
+
+	const response = await fetch(url, {
+		method,
+		headers: { "Content-Type": "application/json" },
+		body: JSON.stringify(data),
+	});
+
+	if (!response.ok) {
+		// Lire l'erreur une seule fois
+		const error = await response.json();
+		throw new Error(error.message || `Failed to ${method} session.`);
+	}
+
+	const result = await response.json();
+	return result;
+}
+
+// ======================
+// Delete one session
+// ======================
+export async function deleteSession(sessionId) {
+	const response = await fetch(`/api/arguments/${sessionId}`, {
 		method: "DELETE",
 	});
-	return res.json();
+
+	if (!response.ok) {
+		const error = await response.json();
+		throw new Error(error.message || `Failed to delete session.`);
+	}
+
+	// Lire une seule fois
+	const result = await response.json();
+	return result;
+}
+
+// ======================
+// Delete ALL sessions
+// ======================
+export async function clearAllSessions() {
+	const response = await fetch("/api/arguments", {
+		method: "DELETE",
+	});
+
+	if (!response.ok) {
+		const error = await response.json();
+		throw new Error(error.message || "Failed to clear sessions");
+	}
+
+	const result = await response.json();
+	return result;
 }
